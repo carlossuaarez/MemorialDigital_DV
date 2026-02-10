@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memorial Digital - Jardín de Paz</title>
+    <script src="https://components.digitalvalue.es/lib/mithril.min.js"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Lora:ital,wght@0,400;0,700;1,400&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #2d3436;
+            --accent: #7a8d7d;
+            --bg: #f2f2f0;
+            --white: #ffffff;
+            --text-main: #2d3436;
+            --text-muted: #636e72;
+            --shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+            --danger: #e17055;
+            --success: #55efc4;
+            --border-soft: rgba(0, 0, 0, 0.06);
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            color: var(--text-main);
+            scroll-behavior: smooth;
+        }
+
+        h1,
+        h2,
+        h3,
+        .name {
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+
+        p,
+        .message {
+            font-family: 'Lora', serif;
+            line-height: 1.7;
+        }
+
+        .header {
+            backdrop-filter: blur(15px);
+            background: rgba(255, 255, 255, 0.85);
+            padding: 1.2rem;
+            text-align: center;
+            border-bottom: 1px solid var(--border-soft);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .memorial-card {
+            background: var(--white);
+            border-radius: 40px;
+            box-shadow: var(--shadow);
+            margin-top: 40px;
+            overflow: hidden;
+            text-align: center;
+            padding-bottom: 40px;
+            border: 1px solid var(--border-soft);
+        }
+
+        .cover-photo {
+            height: 250px;
+            background: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)), url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=1000') center/cover;
+        }
+
+        .profile-pic-container {
+            position: relative;
+            display: inline-block;
+            margin-top: -80px;
+        }
+
+        .profile-pic {
+            width: 160px;
+            height: 160px;
+            border-radius: 80px;
+            object-fit: cover;
+            border: 8px solid var(--white);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .name {
+            font-size: 3rem;
+            margin: 20px 0 5px;
+            color: var(--primary);
+        }
+
+        .dates {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            color: var(--accent);
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+
+        .interaction-bar {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .btn-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 25px;
+            border: 1px solid #e0e0e0;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+        }
+
+        .btn-circle:hover {
+            background: var(--bg);
+            transform: translateY(-3px);
+            border-color: var(--accent);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            margin: 70px 0 35px;
+            text-align: center;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .section-title::before,
+        .section-title::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: rgba(0, 0, 0, 0.1);
+            margin: 0 20px;
+        }
+
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        .gallery-item {
+            position: relative;
+            overflow: hidden;
+            border-radius: 24px;
+            height: 250px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            border: 4px solid var(--white);
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            cursor: pointer;
+            transition: 0.5s;
+        }
+
+        .gallery-item img:hover {
+            transform: scale(1.05);
+        }
+
+        .btn-delete {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--danger);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            z-index: 5;
+        }
+
+        .dedication-card {
+            background: var(--white);
+            padding: 35px;
+            border-radius: 30px;
+            margin-bottom: 25px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-soft);
+        }
+
+        .author {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+        }
+
+        .message {
+            font-size: 1.3rem;
+            color: var(--primary);
+            margin: 0;
+            font-style: italic;
+        }
+
+        .form-card {
+            background: var(--white);
+            padding: 40px;
+            border-radius: 40px;
+            margin-top: 30px;
+            border: 1px solid var(--border-soft);
+            box-shadow: var(--shadow);
+        }
+
+        .btn-action {
+            background: var(--primary);
+            color: white;
+            padding: 18px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+            transition: 0.3s;
+        }
+
+        .btn-action:hover {
+            background: var(--accent);
+            box-shadow: 0 10px 20px rgba(122, 141, 125, 0.3);
+        }
+
+        .form-card input,
+        .form-card textarea {
+            background: #f9f9f9;
+            border: 1px solid #eee;
+            margin-bottom: 10px;
+            border-radius: 12px;
+            transition: 0.3s;
+        }
+
+        .form-card input:focus,
+        .form-card textarea:focus {
+            background: #fff;
+            border-color: var(--accent);
+            outline: none;
+        }
+
+        /* NUEVOS ESTILOS PARA EL PANEL DE ADMINISTRACIÓN */
+        .admin-wrapper {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 15px;
+        }
+
+        .admin-panel-card {
+            background: white;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            border: 1px solid var(--border-soft);
+            width: 200px;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .admin-panel-card input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+            font-size: 0.8rem;
+        }
+
+        .admin-status-tag {
+            background: var(--success);
+            color: var(--primary);
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+            margin-bottom: 5px;
+            display: inline-block;
+        }
+
+        /* Estilos Notificaciones */
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 2000;
+        }
+
+        .toast {
+            background: var(--primary);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            margin-top: 10px;
+            box-shadow: var(--shadow);
+        }
+
+        .dialog-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+        }
+
+        .dialog-box {
+            background: white;
+            padding: 30px;
+            border-radius: 25px;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .dialog-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        /* Estilos para el Footer */
+        .main-footer {
+            background-color: #1a1d1e;
+            /* Un tono casi negro muy elegante */
+            color: #ffffff;
+            margin-top: 80px;
+            padding: 60px 20px 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .footer-grid {
+            max-width: 900px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 40px;
+            margin-bottom: 50px;
+        }
+
+        .footer-column h4 {
+            color: var(--accent);
+            font-size: 0.75rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+
+        .footer-column p {
+            font-size: 0.9rem;
+            color: #a0a0a0;
+            line-height: 1.6;
+        }
+
+        .footer-links {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .footer-links li {
+            font-size: 0.9rem;
+            color: #d1d1d1;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .footer-links li:hover {
+            color: var(--accent);
+        }
+
+        .social-icons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .social-icon {
+            color: #a0a0a0;
+            transition: 0.3s;
+        }
+
+        .social-icon:hover {
+            color: white;
+        }
+
+        .copyright-bar {
+            max-width: 900px;
+            margin: 0 auto;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.7rem;
+            color: #666;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+
+<body>
+    <script>
+        var State = {
+            deceased: {
+                id: "1",
+                name: "Mario Ortiz Fernández",
+                birth: "2005",
+                death: "2025",
+                bio: "Maestro, jardinero de vocación y contador de historias. Su vida fue un testimonio de que la paciencia y la bondad son las fuerzas más poderosas del mundo.",
+                photo: "https://images.unsplash.com/photo-1552058544-f2b08422138a?w=400&h=400&fit=crop",
+                gallery: [
+                    "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800",
+                    "https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=800",
+                    "https://images.unsplash.com/photo-1496417263034-38ec4f0b665a?w=800"
+                ],
+                messages: [
+                    { author: "Familia García", text: "Tu luz sigue guiando nuestros pasos cada día." }
+                ]
+            },
+            modalImage: null,
+            newAuthor: "",
+            newMessage: "",
+            isAdmin: false,
+            inputPin: "",
+            showAdminPanel: false,
+            velas: 0,
+            toasts: [],
+            dialog: { show: false, title: "", message: "", onConfirm: null, isPrompt: false, promptValue: "" }
+        };
+
+        function showToast(text) {
+            var id = Date.now();
+            State.toasts.push({ id: id, text: text });
+            m.redraw();
+            setTimeout(function () {
+                State.toasts = State.toasts.filter(function (t) { return t.id !== id; });
+                m.redraw();
+            }, 3000);
+        }
+
+        function showConfirm(title, message, callback) {
+            State.dialog = { show: true, title: title, message: message, onConfirm: callback, isPrompt: false };
+        }
+
+        function showPrompt(title, currentVal, callback) {
+            State.dialog = { show: true, title: title, message: "", promptValue: currentVal, onConfirm: callback, isPrompt: true };
+        }
+
+        function deletePhoto(imgSrc) {
+            showConfirm("¿Eliminar recuerdo?", "Esta acción no se puede deshacer.", function () {
+                State.deceased.gallery = State.deceased.gallery.filter(function (i) { return i !== imgSrc; });
+                showToast("Recuerdo eliminado");
+            });
+        }
+
+        function deleteMessage(msgObj) {
+            showConfirm("¿Eliminar testimonio?", "Esta acción ocultará permanentemente este mensaje.", function () {
+                State.deceased.messages = State.deceased.messages.filter(function (m) { return m !== msgObj; });
+                showToast("Testimonio eliminado");
+            });
+        }
+
+        function handleFileUpload(e) {
+            var file = e.target.files[0];
+            if (file) {
+                var reader = new FileReader();
+                reader.onload = function (event) {
+                    State.deceased.gallery.unshift(event.target.result);
+                    showToast("📸 Foto añadida");
+                    m.redraw();
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function NotificationSystem() {
+            return {
+                view: function () {
+                    return m("div", [
+                        m(".toast-container", State.toasts.map(function (t) { return m(".toast", t.text); })),
+                        State.dialog.show ? m(".dialog-overlay", [
+                            m(".dialog-box", [
+                                m("h3", State.dialog.title),
+                                m("p", State.dialog.message),
+                                State.dialog.isPrompt ? m("textarea", {
+                                    style: "width:100%; padding:10px; border-radius:10px; border:1px solid #ddd; margin-top:10px;",
+                                    rows: 4,
+                                    value: State.dialog.promptValue,
+                                    oninput: function (e) { State.dialog.promptValue = e.target.value; }
+                                }) : null,
+                                m(".dialog-buttons", [
+                                    m("button.btn-action", { style: "background:#eee; color:#333;", onclick: function () { State.dialog.show = false; } }, "Cancelar"),
+                                    m("button.btn-action", {
+                                        onclick: function () {
+                                            if (State.dialog.isPrompt) State.dialog.onConfirm(State.dialog.promptValue);
+                                            else State.dialog.onConfirm();
+                                            State.dialog.show = false;
+                                        }
+                                    }, "Aceptar")
+                                ])
+                            ])
+                        ]) : null
+                    ]);
+                }
+            };
+        }
+
+        function GalleryModal() {
+            return {
+                view: function () {
+                    return m(".modal", {
+                        style: State.modalImage ? "display:flex; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:5000; align-items:center; justify-content:center;" : "display:none",
+                        onclick: function () { State.modalImage = null; }
+                    }, [
+                        m("img", { src: State.modalImage, style: "max-width:90%; max-height:90%; border-radius:10px;" })
+                    ]);
+                }
+            };
+        }
+
+        function AdminControl() {
+            return {
+                view: function () {
+                    return m(".admin-wrapper", [
+                        State.showAdminPanel ? m(".admin-panel-card", [
+                            !State.isAdmin ? [
+                                m("h5", { style: "margin:0 0 10px 0; font-size:0.9rem;" }, "Acceso Familiar"),
+                                m("input[type=password][placeholder=PIN]", {
+                                    value: State.inputPin,
+                                    oninput: function (e) { State.inputPin = e.target.value; }
+                                }),
+                                m("button.btn-action", {
+                                    style: "padding:8px; font-size:0.8rem;",
+                                    onclick: function () {
+                                        if (State.inputPin === "1234") {
+                                            State.isAdmin = true;
+                                            State.inputPin = "";
+                                            showToast("Modo editor activado");
+                                        } else {
+                                            showToast("PIN incorrecto");
+                                        }
+                                    }
+                                }, "Entrar")
+                            ] : [
+                                m(".admin-status-tag", "EDITOR ACTIVO"),
+                                m("button.btn-action", {
+                                    style: "padding:8px; font-size:0.8rem; background: var(--danger);",
+                                    onclick: function () {
+                                        State.isAdmin = false;
+                                        State.showAdminPanel = false;
+                                        showToast("Editor cerrado");
+                                    }
+                                }, "Cerrar Sesión")
+                            ]
+                        ]) : null,
+                        m("button.btn-circle", {
+                            style: "background: var(--primary); color: white; width: 60px; height: 60px; font-size: 1.5rem; box-shadow: 0 10px 20px rgba(0,0,0,0.2);",
+                            onclick: function () { State.showAdminPanel = !State.showAdminPanel; }
+                        }, State.showAdminPanel ? "×" : "⚙️")
+                    ]);
+                }
+            }
+        }
+
+        function MemorialCard() {
+            return {
+                view: function () {
+                    var p = State.deceased;
+                    return m("div.container", { style: "max-width: 900px; margin: 0 auto;" }, [
+                        m(".memorial-card", { style: "border: none; background: #fff; overflow: visible;" }, [
+                            m(".cover-photo", {
+                                style: "height: 250px; border-radius: 40px 40px 0 0; clip-path: ellipse(150% 100% at 50% 0%);"
+                            }),
+                            m(".profile-pic-container", {
+                                style: "margin-top: -90px; margin-bottom: -40px; position: relative; z-index: 10;"
+                            }, [
+                                m("img.profile-pic", {
+                                    src: p.photo,
+                                    style: "width: 180px; height: 180px; filter: grayscale(20%); border: 6px solid #fff;"
+                                })
+                            ]),
+                            m("div", { style: "padding: 0 40px;" }, [
+                                m("h1.name", { style: "font-size: 3.5rem; margin-bottom: 0;" }, p.name),
+                                m(".dates", { style: "opacity: 0.7; font-size: 1rem; margin-top: 10px;" }, [
+                                    m("span", p.birth),
+                                    m("span", { style: "margin: 0 15px; font-weight: 300;" }, "|"),
+                                    m("span", p.death)
+                                ]),
+                                m(".interaction-bar", {
+                                    style: "margin-top: 20px; border-top: 1px solid #f0f0f0; border-bottom: 1px solid #f0f0f0; padding: 20px 0;"
+                                }, [
+                                    m("div", { style: "display: flex; gap: 25px; align-items: center;" }, [
+                                        m("button.btn-circle", {
+                                            onclick: function () {
+                                                State.velas++;
+                                                showToast("🕯️ Homenaje enviado");
+                                            }
+                                        }, "🕯️"),
+                                        m("button.btn-circle", {
+                                            onclick: function () { showToast("🔗 Enlace copiado"); }
+                                        }, "🔗"),
+                                        m("button.btn-circle", {
+                                            onclick: function () { window.print(); }
+                                        }, "📄"),
+                                        State.isAdmin ? m("button.btn-circle", {
+                                            style: "background: #f8f9fa;",
+                                            onclick: function () {
+                                                showPrompt("Editar biografía", p.bio, function (nb) {
+                                                    p.bio = nb;
+                                                    showToast("Bio actualizada");
+                                                });
+                                            }
+                                        }, "✏️") : null
+                                    ])
+                                ]),
+                                m("div", { style: "position: relative; padding-bottom: 20px;" }, [
+                                    m("span", {
+                                        style: "font-family: serif; font-size: 4rem; position: absolute; left: -30px; top: -10px; opacity: 0.1;"
+                                    }, "“"),
+                                    m("p.bio-text", {
+                                        style: "font-size: 1.3rem; color: #444; line-height: 2; text-align: left;"
+                                    }, p.bio)
+                                ])
+                            ])
+                        ]),
+                        m("h3.section-title", [
+                            m("span", { style: "background: var(--bg); padding: 0 20px;" }, "Recuerdos")
+                        ]),
+                        m(".gallery", { style: "gap: 15px; padding: 10px;" }, [
+                            m("label.gallery-item", {
+                                style: "border: 2px dashed #ccc; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; background: #fff;"
+                            }, [
+                                m("input[type=file][accept=image/*]", { style: "display: none;", onchange: handleFileUpload }),
+                                m("span", { style: "font-size: 2rem; color: var(--accent);" }, "+"),
+                                m("span", { style: "font-size: 0.8rem; color: #888; font-weight: 600; margin-top: 10px;" }, "COMPARTIR FOTO")
+                            ]),
+                            p.gallery.map(function (img) {
+                                return m(".gallery-item", {
+                                    style: "border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);"
+                                }, [
+                                    m("img", { src: img, onclick: function () { State.modalImage = img; } }),
+                                    State.isAdmin ? m("button.btn-delete", {
+                                        style: "border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;",
+                                        onclick: function () { deletePhoto(img); }
+                                    }, "×") : null
+                                ]);
+                            })
+                        ]),
+                        m("h3.section-title", [
+                            m("span", { style: "background: var(--bg); padding: 0 20px;" }, "Testimonios")
+                        ]),
+                        m(".dedication-grid", {
+                            style: "display: grid; grid-template-columns: 1fr; gap: 20px;"
+                        }, p.messages.map(function (msg) {
+                            return m(".dedication-card", {
+                                style: "text-align: left; border-left: 3px solid var(--accent); background: #fff; padding: 25px; position: relative;"
+                            }, [
+                                State.isAdmin ? m("button", {
+                                    style: "position: absolute; top: 10px; right: 10px; border: none; background: none; cursor: pointer; opacity: 0.3;",
+                                    onclick: function () { deleteMessage(msg); }
+                                }, "🗑️") : null,
+                                m("p.message", { style: "font-size: 1.1rem; margin-bottom: 15px;" }, msg.text),
+                                m("span.author", { style: "font-weight: 600; font-size: 0.8rem; color: #888;" }, "— " + msg.author)
+                            ]);
+                        })),
+                        m("form.form-card", {
+                            style: "background: #fff; border: 1px solid #e0e0e0; margin-top: 40px; box-shadow: 0 20px 40px rgba(0,0,0,0.04); padding: 40px; border-radius: 30px;",
+                            onsubmit: function (e) {
+                                e.preventDefault();
+                                if (State.newAuthor && State.newMessage) {
+                                    State.deceased.messages.unshift({ author: State.newAuthor, text: State.newMessage });
+                                    State.newAuthor = State.newMessage = "";
+                                    showToast("✨ Mensaje publicado");
+                                }
+                            }
+                        }, [
+                            m("h4", {
+                                style: "margin-top: 0; padding-left: 2px; font-size: 1.4rem; color: var(--primary); margin-bottom: 25px; font-weight: 600; text-align: left;"
+                            }, "Dejar una dedicatoria"),
+                            m("div", { style: "display: flex; flex-direction: column; gap: 8px;" }, [
+                                m("input", {
+                                    placeholder: "Su nombre o relación",
+                                    style: "border: 1px solid #ada8a8; background: #fafafa; padding: 14px 18px; border-radius: 12px; width: 100%; box-sizing: border-box; font-family: inherit;",
+                                    value: State.newAuthor,
+                                    oninput: function (e) { State.newAuthor = e.target.value; }
+                                }),
+                                m("textarea", {
+                                    placeholder: "Escriba su mensaje aquí...",
+                                    style: "border: 1px solid #ada8a8; background: #fafafa; padding: 14px 18px; padding-bottom: 35px; border-radius: 12px; width: 100%; box-sizing: border-box; font-family: inherit;",
+                                    value: State.newMessage,
+                                    oninput: function (e) { State.newMessage = e.target.value; }
+                                }),
+                                m("button.btn-action", { style: "width: 100%;" }, "Publicar Testimonio")
+                            ])
+                        ])
+                    ]);
+                }
+            };
+        }
+
+        function Footer() {
+            return {
+                view: function () {
+                    return m("footer.main-footer", [
+                        m(".footer-grid", [
+                            // Columna 1: Branding
+                            m(".footer-column", [
+                                m(".flex", { style: "display:flex; align-items:center; gap:10px; margin-bottom:20px" }, [
+                                    m("div", { style: "width:30px; height:30px; background:var(--accent); rounded-radius:5px; display:flex; align-items:center; justify-content:center; color:white; font-weight:bold; border-radius:6px" }, "G"),
+                                    m("span", { style: "font-weight:bold; font-size:1.2rem; letter-spacing:-1px" }, "GARDEN OF REMEMBRANCE")
+                                ]),
+                                m("p", "Lorem ipsum dolor sit amet consectetur adipisicing elit. Doloribus at obcaecati porro modi adipisci quod officia, similique necessitatibus inv")
+                            ]),
+
+                            // Columna 2: Enlaces
+                            m(".footer-column", [
+                                m("h4", "Navegación"),
+                                m("ul.footer-links", [
+                                    m("li", "Centro de Ayuda"),
+                                    m("li", "Lorem ipsum"),
+                                    m("li", "Lorem")
+                                ])
+                            ]),
+
+                            // Columna 3: Social
+                            m(".footer-column", [
+                                m("h4", "Redes Sociales"),
+                                m(".social-icons", [
+                                    m("a.social-icon", { href: "" }, "Instagram"),
+                                    m("a.social-icon", { href: "" }, "Twitter"),
+                                    m("a.social-icon", { href: "" }, "Facebook")
+                                ])
+                            ])
+                        ]),
+
+                        // Copyright Bar
+                        m(".copyright-bar", [
+                            m("span", "© 2026 Garden Of Remembrance"),
+                            m(".footer-legal", { style: "display:flex; gap:20px" }, [
+                                m("span", "Privacidad"),
+                                m("span", "Términos")
+                            ])
+                        ])
+                    ])
+                }
+            }
+        }
+
+        function App() {
+            return {
+                view: function () {
+                    return m("div", [
+                        m("nav.header", m("h2", { style: "margin:0; font-size: 0.85rem; letter-spacing: 6px; color: var(--primary); font-weight: 600;" }, "GARDEN OF REMEMBRANCE")),
+                        m(MemorialCard),
+                        m(GalleryModal),
+                        m(AdminControl),
+                        m(NotificationSystem),
+                        m(Footer),
+                    ]);
+                }
+            };
+        }
+        m.mount(document.body, App);
+    </script>
+</body>
+
+</html>
