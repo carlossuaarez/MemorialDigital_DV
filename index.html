@@ -720,7 +720,22 @@
                             onsubmit: function (e) {
                                 e.preventDefault();
                                 if (State.newAuthor && State.newMessage) {
-                                    State.deceased.messages.unshift({ author: State.newAuthor, text: State.newMessage });
+                                    var formattedMsg = State.newMessage.trim();//Limpieza y formato automático del mensaje
+
+                                    //Corregir falta de espacio después de un punto (ej: "hola.amigo" -> "hola. amigo")
+                                    formattedMsg = formattedMsg.replace(/\.([^\s])/g, '. $1');
+
+                                    //Mayúscula al principio y después de cada punto seguido de espacio
+                                    formattedMsg = formattedMsg.replace(/(^\w|\.\s+\w)/gm, function (match) {
+                                        return match.toUpperCase();
+                                    });
+
+                                    //Punto final obligatorio
+                                    if (!formattedMsg.endsWith('.')) {
+                                        formattedMsg += '.';
+                                    }
+
+                                    State.deceased.messages.unshift({ author: State.newAuthor, text: formattedMsg });
                                     State.newAuthor = State.newMessage = "";
                                     showToast("✨ Mensaje publicado");
                                 }
@@ -737,7 +752,7 @@
                                     oninput: function (e) { State.newAuthor = e.target.value; }
                                 }),
                                 m("textarea", {
-                                    placeholder: "Escriba su mensaje aquí...",
+                                    placeholder: "Escriba su mensaje aquí. Recuerde ser respetuoso.",
                                     style: "border: 1px solid #ada8a8; background: #fafafa; padding: 14px 18px; padding-bottom: 35px; border-radius: 12px; width: 100%; box-sizing: border-box; font-family: inherit;",
                                     value: State.newMessage,
                                     oninput: function (e) { State.newMessage = e.target.value; }
