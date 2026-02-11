@@ -494,23 +494,10 @@
 
 <body>
     <script>
+        const DB = "memorial_db";
+
         var State = {
-            deceased: {
-                id: "1",
-                name: "Mario Ortiz Fernández",
-                birth: "2005",
-                death: "2025",
-                bio: "Maestro, jardinero de vocación y contador de historias. Su vida fue un testimonio de que la paciencia y la bondad son las fuerzas más poderosas del mundo.",
-                photo: "https://images.unsplash.com/photo-1552058544-f2b08422138a?w=400&h=400&fit=crop",
-                gallery: [
-                    "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800",
-                    "https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=800",
-                    "https://images.unsplash.com/photo-1496417263034-38ec4f0b665a?w=800"
-                ],
-                messages: [
-                    { author: "Familia García", text: "Tu luz sigue guiando nuestros pasos cada día." }
-                ]
-            },
+            deceased: { gallery: [], messages: [] },
             modalImage: null,
             newAuthor: "",
             newMessage: "",
@@ -521,6 +508,19 @@
             toasts: [],
             dialog: { show: false, title: "", message: "", onConfirm: null, isPrompt: false, promptValue: "" }
         };
+
+        function fetchData() {
+            // 1. Traer fotos de la tabla 'fotos'
+            m.request({ method: "GET", url: `/rdb/${DB}/fotos` })
+                .then(res => { State.deceased.gallery = res.items; });
+
+            // 2. Traer testimonios de la tabla 'testimonios'
+            m.request({ method: "GET", url: `/rdb/${DB}/testimonios` })
+                .then(res => { State.deceased.messages = res.items; });
+        }
+
+        // Ejecutar al inicio
+        fetchData();
 
         function showToast(text) {
             var id = Date.now();
@@ -556,12 +556,22 @@
 
         function handleFileUpload(e) {
             var file = e.target.files[0];
+            var autor = prompt("¿Quién sube esta foto?", "Anónimo");
+
             if (file) {
                 var reader = new FileReader();
                 reader.onload = function (event) {
-                    State.deceased.gallery.unshift(event.target.result);
-                    showToast("📸 Foto añadida");
-                    m.redraw();
+                    m.request({
+                        method: "POST",
+                        url: `/rdb/${DB}/fotos`,
+                        body: {
+                            src: event.target.result,
+                            uploader_name: autor
+                        }
+                    }).then(() => {
+                        showToast("📸 Foto añadida");
+                        fetchData();
+                    });
                 };
                 reader.readAsDataURL(file);
             }
@@ -727,7 +737,7 @@
                                                 style: "font-family: 'Lora', serif; color: #555; line-height: 1.6; font-style: italic; margin: 0; position: relative; z-index: 1;"
                                             }, p.bio),
                                             m("span", {
-                                                style: "font-family: 'Lora', serif; font-size: 4rem; position: absolute; right: -10px; bottom: -10px; color: var(--accent); line-height: 1; opacity: 0.5;"
+                                                style: "font-family: 'Lora', serif; font-size: 4rem; position: absolute; right: -10px; bottom: -20px; color: var(--accent); line-height: 1; opacity: 0.5;"
                                             }, "”")
                                         ])
                                     ])
@@ -739,14 +749,23 @@
                                     // Sección Recuerdos
                                     m("h3.section-title", [m("span", { style: "background: #fff; padding: 20px;" }, "Recuerdos")]),
                                     m(".gallery", { style: "gap: 15px; padding: 0 0 40px 0;" }, [
-                                        p.gallery.map(function (img) {
-                                            return m(".gallery-item", {
-                                                style: "border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);"
-                                            }, [
-                                                m("img", { src: img, onclick: function () { State.modalImage = img; } }),
+                                        // Dentro de p.gallery.map en la vista:
+                                        p.gallery.map(function (imgData) {
+                                            return m(".gallery-item", { style: "position: relative;" }, [
+                                                m("img", {
+                                                    src: imgData.src, // Ahora imgData es un objeto de la fila de SQL
+                                                    onclick: function () { State.modalImage = imgData.src; }
+                                                }),
+                                                // Etiqueta sutil con el nombre del autor
+                                                m("div", {
+                                                    style: "position: absolute; bottom: 0; background: rgba(0,0,0,0.5); color: #fff; width: 100%; font-size: 0.7rem; padding: 5px;"
+                                                }, "Subida por: " + (imgData.uploader_name || "Anónimo")),
+
                                                 State.isAdmin ? m("button.btn-delete", {
-                                                    style: "border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;",
-                                                    onclick: function () { deletePhoto(img); }
+                                                    onclick: function () {
+                                                        // Usamos el id de la fila para borrar en SQL
+                                                        rdb_delete_call("fotos", imgData.id);
+                                                    }
                                                 }, "×") : null
                                             ]);
                                         }),
@@ -776,30 +795,25 @@
                                         ]);
                                     })),
 
-                                    // Formulario (Alineado en la columna derecha)
+                                    // Formulario 
                                     m("form.form-card", {
                                         style: "background: #fafafa; border: 1px solid #e0e0e0; padding: 40px; border-radius: 30px;",
+                                        // Dentro del onsubmit del formulario:
                                         onsubmit: function (e) {
                                             e.preventDefault();
                                             if (State.newAuthor && State.newMessage) {
-                                                var formattedMsg = State.newMessage.trim();
-
-                                                // Corregir falta de espacio después de un punto
-                                                formattedMsg = formattedMsg.replace(/\.([^\s])/g, '. $1');
-
-                                                // Mayúscula al principio y después de cada punto seguido de espacio
-                                                formattedMsg = formattedMsg.replace(/(^\w|\.\s+\w)/gm, function (match) {
-                                                    return match.toUpperCase();
+                                                m.request({
+                                                    method: "POST",
+                                                    url: `/rdb/${DB}/testimonios`,
+                                                    body: {
+                                                        author: State.newAuthor,
+                                                        text: State.newMessage.trim()
+                                                    }
+                                                }).then(() => {
+                                                    showToast("✨ Mensaje guardado");
+                                                    State.newAuthor = State.newMessage = "";
+                                                    fetchData(); // Recargamos de la DB
                                                 });
-
-                                                // Punto final obligatorio
-                                                if (!formattedMsg.endsWith('.')) {
-                                                    formattedMsg += '.';
-                                                }
-
-                                                State.deceased.messages.unshift({ author: State.newAuthor, text: formattedMsg });
-                                                State.newAuthor = State.newMessage = "";
-                                                showToast("✨ Mensaje publicado");
                                             }
                                         }
                                     }, [
