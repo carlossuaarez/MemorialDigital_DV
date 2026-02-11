@@ -113,7 +113,7 @@
             display: flex;
             justify-content: center;
             gap: 15px;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
         }
 
         .btn-circle {
@@ -633,7 +633,7 @@
                                     m("span", p.death)
                                 ]),
                                 m(".interaction-bar", {
-                                    style: "margin-top: 20px; border-top: 1px solid #f0f0f0; border-bottom: 1px solid #f0f0f0; padding: 20px 0;"
+                                    style: "margin-top: 20px; border-top: 1px solid #c9c9c5; border-bottom: 1px solid #c9c9c5; padding: 20px 0;"
                                 }, [
                                     m("div", { style: "display: flex; gap: 25px; align-items: center;" }, [
                                         m("button.btn-circle", {
@@ -659,13 +659,19 @@
                                         }, "✏️") : null
                                     ])
                                 ]),
-                                m("div", { style: "position: relative; padding-bottom: 20px;" }, [
+                                m("div", {
+                                    style: "position: relative; padding: 40px 0; max-width: 600px; margin: 0 auto;"
+                                }, [
                                     m("span", {
-                                        style: "font-family: serif; font-size: 4rem; position: absolute; left: -30px; top: -10px; opacity: 0.1;"
+                                        style: "font-family: 'Lora', serif; font-size: 5rem; position: absolute; left: -20px; top: 0px; color: var(--accent); line-height: 1;"
                                     }, "“"),
+
                                     m("p.bio-text", {
-                                        style: "font-size: 1.3rem; color: #444; line-height: 2; text-align: left;"
-                                    }, p.bio)
+                                        style: "font-family: 'Lora', serif; font-size: 1.4rem; color: #555; line-height: 1.8; text-align: center; font-style: italic; margin: 0; position: relative; z-index: 1;"
+                                    }, p.bio),
+                                    m("span", {
+                                        style: "font-family: 'Lora', serif; font-size: 5rem; position: absolute; right: -20px; bottom: -20px; color: var(--accent); line-height: 1;"
+                                    }, "”")
                                 ])
                             ])
                         ]),
@@ -809,4 +815,5 @@
         m.mount(document.body, App);
     </script>
 </body>
+
 </html>
