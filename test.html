@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<h2>Test de Conexión</h2>
+<div id="resultado">Probando...</div>
+<script>
+    fetch('setup.php?table=testimonios')
+        .then(response => {
+            if (!response.ok) throw new Error("Backend responde error: " + response.status);
+            return response.text(); // Leemos como texto primero para ver si hay errores de PHP
+        })
+        .then(text => {
+            try {
+                const json = JSON.parse(text);
+                document.getElementById("resultado").innerHTML = 
+                    "<b style='color:green'>✅ CONEXIÓN ÉXITOSA</b><br>Datos recibidos: " + json.items.length + " pistas.";
+            } catch (e) {
+                document.getElementById("resultado").innerHTML = 
+                    "<b style='color:red'>❌ ERROR DE JSON</b><br>El backend no devolvió JSON limpio.<br>Respuesta recibida:<br><pre>" + text + "</pre>";
+            }
+        })
+        .catch(error => {
+            document.getElementById("resultado").innerHTML = 
+                "<b style='color:red'>❌ ERROR DE RED</b><br>" + error.message;
+        });
+</script>

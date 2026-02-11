@@ -1,34 +1,32 @@
 <?php
-include "sqlite.php"; 
+// Forzamos que se vean errores si los hay
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
 
-$database = "memorial_db";
+// Nombre exacto del archivo
+$nombre_base_datos = "memorial_db.db";
 
-// 1. Definimos los campos para la tabla de FOTOS
-//  Usamos la función rdb_post_table($database, $table)
-// El cuerpo de la petición (getBody) debería simular estos datos:
-$_POST = [
-    "id" => "INTEGER PRIMARY KEY AUTOINCREMENT",
-    "src" => "TEXT",
-    "uploader_name" => "TEXT"
-];
+try {
+    $db = new SQLite3($nombre_base_datos);
+    
+    // Crear tabla de fotos
+    $db->exec("CREATE TABLE IF NOT EXISTS fotos (
+        id INTEGER PRIMARY KEY AUTOINCREMENT, 
+        src TEXT, 
+        uploader_name TEXT
+    )");
+    
+    // Crear tabla de testimonios
+    $db->exec("CREATE TABLE IF NOT EXISTS testimonios (
+        id INTEGER PRIMARY KEY AUTOINCREMENT, 
+        author TEXT, 
+        text TEXT
+    )");
 
-// Simulamos la entrada de datos
-function getBody() { 
-    return $_POST; 
-} 
+    echo "<h1>✅ Base de datos configurada</h1>";
+    echo "Archivo creado: <b>" . realpath($nombre_base_datos) . "</b>";
+    echo "<br><br><a href='index.html'>Volver a la aplicación</a>";
 
-echo "Creando tabla fotos... <br>";
-rdb_post_table($database, "fotos");
-
-// 2. Definimos los campos para la tabla de TESTIMONIOS
-$_POST = [
-    "id" => "INTEGER PRIMARY KEY AUTOINCREMENT",
-    "author" => "TEXT",
-    "text" => "TEXT"
-];
-
-echo "Creando tabla testimonios... <br>";
-rdb_post_table($database, "testimonios");
-
-echo "¡Base de datos lista!";
-?>
+} catch (Exception $e) {
+    echo "<h1>❌ Error</h1>" . $e->getMessage();
+}

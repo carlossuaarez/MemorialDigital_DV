@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Memorial Digital - Jardín de Paz</title>
     <script src="https://components.digitalvalue.es/lib/mithril.min.js"></script>
-    <link rel="icon" type="image/png" href="https://img.icons8.com/ios-filled/1600/11d915/leaf.png">
+    <link rel="icon" type="image/png" href="https://img.icons8.com/ios-filled/1600/11d915/leaf.png"> <!-- favicon -->
     <link
         href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Lora:ital,wght@0,400;0,700;1,400&display=swap"
         rel="stylesheet">
@@ -494,7 +494,7 @@
 
 <body>
     <script>
-        const DB = "memorial_db";
+        const DB = "memorial_db.db";
 
         var State = {
             deceased: { gallery: [], messages: [] },
@@ -510,13 +510,25 @@
         };
 
         function fetchData() {
-            // 1. Traer fotos de la tabla 'fotos'
-            m.request({ method: "GET", url: `/rdb/${DB}/fotos` })
-                .then(res => { State.deceased.gallery = res.items; });
+            // Para la galería
+            m.request({ method: "GET", url: `${DB}?table=fotos` })
+                .then(function (res) {
+                    State.deceased.gallery = (res && res.items) ? res.items : [];// Si res es null o res.items no existe, usamos un array vacío
+                })
+                .catch(function (err) {
+                    console.error("Error cargando fotos:", err);
+                    State.deceased.gallery = [];
+                });
 
-            // 2. Traer testimonios de la tabla 'testimonios'
-            m.request({ method: "GET", url: `/rdb/${DB}/testimonios` })
-                .then(res => { State.deceased.messages = res.items; });
+            // Para los testimonios
+            m.request({ method: "GET", url: `${DB}?table=testimonios` })
+                .then(function (res) {
+                    State.deceased.messages = (res && res.items) ? res.items : [];
+                })
+                .catch(function (err) {
+                    console.error("Error cargando mensajes:", err);
+                    State.deceased.messages = [];
+                });
         }
 
         // Ejecutar al inicio
@@ -556,22 +568,32 @@
 
         function handleFileUpload(e) {
             var file = e.target.files[0];
-            var autor = prompt("¿Quién sube esta foto?", "Anónimo");
+            // Prompt para pedir nombre (puedes dejarlo vacío si quieres)
+            var autor = prompt("¿Quién comparte este recuerdo?", "Anónimo");
 
             if (file) {
                 var reader = new FileReader();
                 reader.onload = function (event) {
+                    // Enviamos al backend
                     m.request({
                         method: "POST",
-                        url: `/rdb/${DB}/fotos`,
+                        url: `${DB}?table=fotos`, 
                         body: {
-                            src: event.target.result,
-                            uploader_name: autor
+                            src: event.target.result, // Esto es la imagen en base64
+                            uploader_name: autor || "Anónimo"
                         }
-                    }).then(() => {
-                        showToast("📸 Foto añadida");
-                        fetchData();
-                    });
+                    })
+                        .then(function (res) {
+                            // Verificamos que 'res' exista antes de preguntar por 'ok'
+                            if (res && res.ok) {
+                                showToast("📸 Foto guardada correctamente");
+                                fetchData();
+                            } else {
+                                // Si res es null o res.ok es falso, mostramos el error real
+                                console.error("Respuesta fallida del servidor:", res);
+                                showToast("❌ Error: " + (res && res.err ? res.err : "Error desconocido"));
+                            }
+                        });
                 };
                 reader.readAsDataURL(file);
             }
@@ -772,9 +794,16 @@
                                         m("label.gallery-item", {
                                             style: "border: 2px dashed #ccc; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; background: #fafafa;"
                                         }, [
-                                            m("input[type=file][accept=image/*]", { style: "display: none;", onchange: handleFileUpload }),
-                                            m("span", { style: "font-size: 2rem; color: var(--accent);" }, "+"),
-                                            m("span", { style: "font-size: 0.7rem; color: #888; font-weight: 600; margin-top: 5px;" }, "AÑADIR FOTO")
+                                            m("input[type=file][accept=image/*]", {
+                                                style: "display: none;",
+                                                onchange: handleFileUpload
+                                            }),
+                                            m("span", {
+                                                style: "font-size: 2rem; color: var(--accent);"
+                                            }, "+"),
+                                            m("span", {
+                                                style: "font-size: 0.7rem; color: #888; font-weight: 600; margin-top: 5px;"
+                                            }, "AÑADIR FOTO")
                                         ]),
                                     ]),
 
