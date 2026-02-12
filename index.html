@@ -754,7 +754,21 @@
                                                     onclick: function () { State.velas++; showToast("🕯️ Homenaje enviado"); }
                                                 }, "🕯️"),
                                                 m("button.btn-circle", {
-                                                    onclick: function () { showToast("🔗 Enlace copiado"); }
+                                                    onclick: function () {
+                                                        var currentUrl = window.location.href;// 1. Cogemos la dirección actual del navegador
+
+                                                        // 2. Intentamos escribirla en el portapapeles
+                                                        navigator.clipboard.writeText(currentUrl)
+                                                            .then(function () {
+                                                                // Si funciona:
+                                                                showToast("🔗 Enlace copiado al portapapeles");
+                                                            })
+                                                            .catch(function (err) {
+                                                                // Si falla (por permisos o navegador muy viejo):
+                                                                console.error("Error al copiar:", err);
+                                                                showToast("❌ No se pudo copiar el enlace");
+                                                            });
+                                                    }
                                                 }, "🔗"),
                                                 m("button.btn-circle", {
                                                     onclick: function () { window.print(); }
