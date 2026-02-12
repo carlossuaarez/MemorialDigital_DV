@@ -368,3 +368,40 @@ function rdb_delete($database,$table,$docid) {
 // function get_files($dir){
 //     return print "Operacion no implementada";
 // }
+
+// --- MOTOR DE EJECUCIÓN ---
+
+// Definimos basepath si no existe (la usa rdb_open)
+function basepath($path) {
+    return __DIR__ . $path;
+}
+
+// Función para obtener el cuerpo de la petición (POST/PUT)
+function getBody() {
+    return json_decode(file_get_contents('php://input'), true);
+}
+
+// Función route simplificada (si no tienes una librería de routing externa)
+function route($path, $callback) {
+    $uri = $_SERVER['REQUEST_URI'];
+    // Ajuste para ignorar el nombre del archivo en la URI
+    $base_script = $_SERVER['SCRIPT_NAME'];
+    $virtual_path = str_replace($base_script, '', $uri);
+    $virtual_path = explode('?', $virtual_path)[0]; // Ignorar parámetros query
+
+    if (is_callable($path)) {
+        $path($break);
+        return;
+    }
+
+    $pattern = "#^" . $path . "$#";
+    if (preg_match($pattern, $virtual_path, $matches)) {
+        array_shift($matches);
+        $callback($matches);
+        exit; // Si encuentra la ruta, termina la ejecución
+    }
+}
+
+// Arrancamos el router
+$method = $_SERVER['REQUEST_METHOD'];
+router_sqlite($method);

@@ -494,10 +494,18 @@
 
 <body>
     <script>
-        const DB = "memorial_db.db";
+        const DB = "memorial_db";
 
         var State = {
-            deceased: { gallery: [], messages: [] },
+            deceased: {
+                name: "Nombre del Ser Querido",
+                birth: "Fecha Nacimiento",
+                death: "Fecha Partida",
+                photo: "https://placehold.co/300x300",
+                bio: "Aquí aparecerá la biografía...",
+                gallery: [],
+                messages: []
+            },
             modalImage: null,
             newAuthor: "",
             newMessage: "",
@@ -511,9 +519,9 @@
 
         function fetchData() {
             // Para la galería
-            m.request({ method: "GET", url: `${DB}?table=fotos` })
+            m.request({ method: "GET", url: `sqlite.php/rdb/${DB}/fotos` })
                 .then(function (res) {
-                    State.deceased.gallery = (res && res.items) ? res.items : [];// Si res es null o res.items no existe, usamos un array vacío
+                    State.deceased.gallery = (res && res.items) ? res.items : [];
                 })
                 .catch(function (err) {
                     console.error("Error cargando fotos:", err);
@@ -521,7 +529,7 @@
                 });
 
             // Para los testimonios
-            m.request({ method: "GET", url: `${DB}?table=testimonios` })
+            m.request({ method: "GET", url: `sqlite.php/rdb/${DB}/testimonios` })
                 .then(function (res) {
                     State.deceased.messages = (res && res.items) ? res.items : [];
                 })
@@ -552,17 +560,32 @@
             State.dialog = { show: true, title: title, message: "", promptValue: currentVal, onConfirm: callback, isPrompt: true };
         }
 
-        function deletePhoto(imgSrc) {
+        function deletePhoto(id) {
             showConfirm("¿Eliminar recuerdo?", "Esta acción no se puede deshacer.", function () {
-                State.deceased.gallery = State.deceased.gallery.filter(function (i) { return i !== imgSrc; });
-                showToast("Recuerdo eliminado");
+                m.request({
+                    method: "DELETE",
+                    url: `sqlite.php/rdb/${DB}/fotos/${id}`
+                }).then(function (res) {
+                    showToast("Recuerdo eliminado");
+                    fetchData(); // Recargar datos
+                }).catch(function (err) {
+                    showToast("Error al eliminar");
+                    console.error(err);
+                });
             });
         }
 
         function deleteMessage(msgObj) {
             showConfirm("¿Eliminar testimonio?", "Esta acción ocultará permanentemente este mensaje.", function () {
-                State.deceased.messages = State.deceased.messages.filter(function (m) { return m !== msgObj; });
-                showToast("Testimonio eliminado");
+                m.request({
+                    method: "DELETE",
+                    url: `sqlite.php/rdb/${DB}/testimonios/${msgObj.id}`
+                }).then(function (res) {
+                    showToast("Testimonio eliminado");
+                    fetchData();
+                }).catch(function (err) {
+                    showToast("Error al eliminar");
+                });
             });
         }
 
@@ -577,7 +600,7 @@
                     // Enviamos al backend
                     m.request({
                         method: "POST",
-                        url: `${DB}?table=fotos`, 
+                        url: `sqlite.php/rdb/${DB}/fotos`,
                         body: {
                             src: event.target.result, // Esto es la imagen en base64
                             uploader_name: autor || "Anónimo"
@@ -695,12 +718,12 @@
                     return m("div.container", [
                         m(".memorial-card", { style: "border: none; background: #fff; overflow: visible;" }, [
 
-                            // 1. PORTADA (Ocupa todo el ancho superior)
+                            // 1. PORTADA
                             m(".cover-photo", {
                                 style: "height: 300px; border-radius: 40px 40px 0 0; clip-path: ellipse(150% 100% at 50% 0%);"
                             }),
 
-                            // 2. GRID PRINCIPAL (Divide la pantalla en dos)
+                            // 2. GRID PRINCIPAL
                             m(".profile-grid", [
 
                                 // --- COLUMNA IZQUIERDA: PERFIL Y BIO ---
@@ -741,14 +764,14 @@
                                                     onclick: function () {
                                                         showPrompt("Editar biografía", p.bio, function (nb) {
                                                             p.bio = nb;
-                                                            showToast("Bio actualizada");
+                                                            showToast("Bio actualizada (Local)"); // Nota: Aquí faltaría conectar con BD si quisieras guardar la bio permanentemente
                                                         });
                                                     }
                                                 }, "✏️") : null
                                             ])
                                         ]),
 
-                                        // Biografía (La cita)
+                                        // Biografía
                                         m("div", {
                                             style: "position: relative; padding: 40px 10px; margin: 0 auto;"
                                         }, [
@@ -765,17 +788,17 @@
                                     ])
                                 ]),
 
-                                // --- COLUMNA DERECHA: CONTENIDO (Recuerdos, Testimonios, Form) ---
+                                // --- COLUMNA DERECHA: CONTENIDO ---
                                 m(".main-content", [
 
                                     // Sección Recuerdos
                                     m("h3.section-title", [m("span", { style: "background: #fff; padding: 20px;" }, "Recuerdos")]),
                                     m(".gallery", { style: "gap: 15px; padding: 0 0 40px 0;" }, [
-                                        // Dentro de p.gallery.map en la vista:
+
                                         p.gallery.map(function (imgData) {
                                             return m(".gallery-item", { style: "position: relative;" }, [
                                                 m("img", {
-                                                    src: imgData.src, // Ahora imgData es un objeto de la fila de SQL
+                                                    src: imgData.src,
                                                     onclick: function () { State.modalImage = imgData.src; }
                                                 }),
                                                 // Etiqueta sutil con el nombre del autor
@@ -785,12 +808,13 @@
 
                                                 State.isAdmin ? m("button.btn-delete", {
                                                     onclick: function () {
-                                                        // Usamos el id de la fila para borrar en SQL
-                                                        rdb_delete_call("fotos", imgData.id);
+                                                        deletePhoto(imgData.id);//Llamada a la función deletePhoto existente
                                                     }
                                                 }, "×") : null
                                             ]);
                                         }),
+
+                                        // Botón añadir foto
                                         m("label.gallery-item", {
                                             style: "border: 2px dashed #ccc; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; background: #fafafa;"
                                         }, [
@@ -824,24 +848,31 @@
                                         ]);
                                     })),
 
-                                    // Formulario 
+                                    // Formulario
                                     m("form.form-card", {
                                         style: "background: #fafafa; border: 1px solid #e0e0e0; padding: 40px; border-radius: 30px;",
-                                        // Dentro del onsubmit del formulario:
                                         onsubmit: function (e) {
                                             e.preventDefault();
                                             if (State.newAuthor && State.newMessage) {
                                                 m.request({
                                                     method: "POST",
-                                                    url: `/rdb/${DB}/testimonios`,
+                                                    url: `sqlite.php/rdb/${DB}/testimonios`,
                                                     body: {
                                                         author: State.newAuthor,
                                                         text: State.newMessage.trim()
                                                     }
-                                                }).then(() => {
-                                                    showToast("✨ Mensaje guardado");
-                                                    State.newAuthor = State.newMessage = "";
-                                                    fetchData(); // Recargamos de la DB
+                                                }).then(function (res) {
+                                                    if (res && res.ok) {
+                                                        showToast("✨ Mensaje guardado");
+                                                        State.newAuthor = "";
+                                                        State.newMessage = "";
+                                                        fetchData();
+                                                    } else {
+                                                        showToast("Error al guardar");
+                                                    }
+                                                }).catch(function (err) {
+                                                    console.error(err);
+                                                    showToast("Error de conexión");
                                                 });
                                             }
                                         }

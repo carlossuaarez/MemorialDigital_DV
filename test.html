@@ -2,7 +2,7 @@
 <h2>Test de Conexión</h2>
 <div id="resultado">Probando...</div>
 <script>
-    fetch('setup.php?table=testimonios')
+    fetch('sqlite.php/rdb/memorial_db/testimonios')
         .then(response => {
             if (!response.ok) throw new Error("Backend responde error: " + response.status);
             return response.text(); // Leemos como texto primero para ver si hay errores de PHP
