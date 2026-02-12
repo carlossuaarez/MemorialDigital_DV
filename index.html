@@ -943,16 +943,34 @@
                                         onsubmit: function (e) {
                                             e.preventDefault();
                                             if (State.newAuthor && State.newMessage) {
+
+                                                // --- LÓGICA DE FORMATEO DE TEXTO ---
+                                                let txt = State.newMessage.trim();
+                                                if (txt) {
+                                                    // 1. Mayúscula al principio de todo
+                                                    txt = txt.charAt(0).toUpperCase() + txt.slice(1);
+
+                                                    // 2. Espacio después de punto y mayúscula después del punto
+                                                    // Buscamos puntos seguidos de letras o puntos sin espacio
+                                                    txt = txt.replace(/\.\s*([a-zñáéíóú])/gi, function (match, letra) {
+                                                        return ". " + letra.toUpperCase();
+                                                    });
+
+                                                    // 3. Punto final obligatorio si no tiene uno (o signos de exclamación/interrogación)
+                                                    if (!/[.!?]$/.test(txt)) {
+                                                        txt += ".";
+                                                    }
+                                                }
                                                 m.request({
                                                     method: "POST",
                                                     url: `sqlite.php/rdb/${DB}/testimonios`,
                                                     body: {
                                                         author: State.newAuthor,
-                                                        text: State.newMessage.trim()
+                                                        text: txt // Enviamos el texto ya formateado
                                                     }
                                                 }).then(function (res) {
                                                     if (res && res.ok) {
-                                                        showToast("✨ Mensaje guardado");
+                                                        showToast("✨ Mensaje publicado");
                                                         State.newAuthor = "";
                                                         State.newMessage = "";
                                                         fetchData();
@@ -977,7 +995,7 @@
                                                 oninput: function (e) { State.newAuthor = e.target.value; }
                                             }),
                                             m("textarea", {
-                                                placeholder: "Escriba su mensaje aquí...",
+                                                placeholder: "Escriba su mensaje aquí... Recuerde ser respetuoso",
                                                 style: "border: 1px solid #ada8a8; background: #fff; padding: 14px 18px; padding-bottom: 35px; border-radius: 12px; width: 100%; box-sizing: border-box; font-family: inherit;",
                                                 value: State.newMessage,
                                                 oninput: function (e) { State.newMessage = e.target.value; }
