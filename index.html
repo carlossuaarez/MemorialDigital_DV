@@ -498,11 +498,11 @@
 
         var State = {
             deceased: {
-                name: "Nombre del Ser Querido",
-                birth: "Fecha Nacimiento",
-                death: "Fecha Partida",
-                photo: "https://placehold.co/300x300",
-                bio: "Aquí aparecerá la biografía...",
+                name: "",
+                birth: "",
+                death: "",
+                photo: "https://pro.campus.sanofi/.imaging/mte/portal/256/dam/Portal/Spain/articulos/dislipemia/whats-next-2024/perfil.png/jcr:content/perfil.png",
+                bio: "",
                 gallery: [],
                 messages: []
             },
@@ -518,29 +518,80 @@
         };
 
         function fetchData() {
-            // Para la galería
-            m.request({ method: "GET", url: `sqlite.php/rdb/${DB}/fotos` })
+            // 1. CARGAR PERFIL (ID 1)
+            m.request({
+                method: "GET",
+                url: `sqlite.php/rdb/${DB}/perfil`
+            })
+                .then(function (res) {
+                    if (res && res.items && res.items.length > 0) {
+                        // Buscamos específicamente el ID 1 entre los items
+                        var dbData = res.items.find(function (i) { return i.id == 1; }) || res.items[0];
+
+                        State.deceased.name = dbData.name || "";
+                        State.deceased.birth = dbData.birth || "";
+                        State.deceased.death = dbData.death || "";
+                        State.deceased.bio = dbData.bio || "";
+                        State.deceased.photo = dbData.photo || State.deceased.photo;
+                        m.redraw();
+                    }
+                }).catch(function (e) { console.error("Error Perfil:", e); });
+
+            // 2. CARGAR GALERÍA
+            m.request({
+                method: "GET",
+                url: `sqlite.php/rdb/${DB}/fotos`
+            })
                 .then(function (res) {
                     State.deceased.gallery = (res && res.items) ? res.items : [];
-                })
-                .catch(function (err) {
-                    console.error("Error cargando fotos:", err);
-                    State.deceased.gallery = [];
-                });
+                    m.redraw();
+                }).catch(function (e) { console.error("Error Fotos:", e); });
 
-            // Para los testimonios
-            m.request({ method: "GET", url: `sqlite.php/rdb/${DB}/testimonios` })
+            // 3. CARGAR TESTIMONIOS
+            m.request({
+                method: "GET",
+                url: `sqlite.php/rdb/${DB}/testimonios`
+            })
                 .then(function (res) {
                     State.deceased.messages = (res && res.items) ? res.items : [];
-                })
-                .catch(function (err) {
-                    console.error("Error cargando mensajes:", err);
-                    State.deceased.messages = [];
-                });
+                    m.redraw();
+                }).catch(function (e) { console.error("Error Testimonios:", e); });
         }
 
-        // Ejecutar al inicio
+        // Ejecutar carga inicial
         fetchData();
+
+        // --- FUNCIÓN: GUARDAR PERFIL EN DB ---
+        function updateProfile(field, value) {
+            // Actualización visual inmediata
+            State.deceased[field] = value;
+
+            // Objeto con los datos. Incluimos el ID para que el backend sepa cuál editar.
+            var payload = { id: 1 };
+            payload[field] = value;
+
+            m.request({
+                method: "PUT",
+                url: `sqlite.php/rdb/${DB}/perfil/1`, // Ruta directa al registro 1
+                body: payload
+            })
+                .then(function (res) {
+                    showToast("💾 Guardado");
+                })
+                .catch(function (err) {
+                    // Si falla con /1, reintentamos a la ruta base (algunas configs lo prefieren así)
+                    m.request({
+                        method: "PUT",
+                        url: `sqlite.php/rdb/${DB}/perfil`,
+                        body: payload
+                    }).then(function () {
+                        showToast("💾 Guardado");
+                    }).catch(function (err2) {
+                        console.error("Fallo crítico al guardar:", err2);
+                        showToast("❌ Error al guardar");
+                    });
+                });
+        }
 
         function showToast(text) {
             var id = Date.now();
@@ -567,10 +618,9 @@
                     url: `sqlite.php/rdb/${DB}/fotos/${id}`
                 }).then(function (res) {
                     showToast("Recuerdo eliminado");
-                    fetchData(); // Recargar datos
+                    fetchData();
                 }).catch(function (err) {
                     showToast("Error al eliminar");
-                    console.error(err);
                 });
             });
         }
@@ -589,34 +639,44 @@
             });
         }
 
+        // Subida de fotos para la galería
         function handleFileUpload(e) {
             var file = e.target.files[0];
-            // Prompt para pedir nombre (puedes dejarlo vacío si quieres)
             var autor = prompt("¿Quién comparte este recuerdo?", "Anónimo");
 
             if (file) {
                 var reader = new FileReader();
                 reader.onload = function (event) {
-                    // Enviamos al backend
                     m.request({
                         method: "POST",
                         url: `sqlite.php/rdb/${DB}/fotos`,
                         body: {
-                            src: event.target.result, // Esto es la imagen en base64
+                            src: event.target.result,
                             uploader_name: autor || "Anónimo"
                         }
                     })
                         .then(function (res) {
-                            // Verificamos que 'res' exista antes de preguntar por 'ok'
                             if (res && res.ok) {
-                                showToast("📸 Foto guardada correctamente");
+                                showToast("📸 Foto guardada");
                                 fetchData();
                             } else {
-                                // Si res es null o res.ok es falso, mostramos el error real
-                                console.error("Respuesta fallida del servidor:", res);
-                                showToast("❌ Error: " + (res && res.err ? res.err : "Error desconocido"));
+                                console.error("Error server:", res);
+                                showToast("❌ Error al subir");
                             }
                         });
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // --- FUNCIÓN: SUBIDA DE FOTO DE PERFIL ---
+        function handleProfilePicUpload(e) {
+            var file = e.target.files[0];
+            if (file) {
+                var reader = new FileReader();
+                reader.onload = function (event) {
+                    // Guardamos directamente en el campo 'photo' del perfil
+                    updateProfile('photo', event.target.result);
                 };
                 reader.readAsDataURL(file);
             }
@@ -728,21 +788,53 @@
 
                                 // --- COLUMNA IZQUIERDA: PERFIL Y BIO ---
                                 m(".profile-sidebar", [
-                                    // Foto de perfil
+
+                                    // Foto de perfil CON EDICIÓN
                                     m(".profile-pic-container", { style: "position: relative; z-index: 10;" }, [
                                         m("img.profile-pic", {
                                             src: p.photo,
-                                            style: "width: 180px; height: 180px; filter: grayscale(20%); border: 6px solid #fff;"
-                                        })
+                                            style: "width: 180px; height: 180px; filter: grayscale(20%); border: 6px solid #fff; object-fit: cover;"
+                                        }),
+                                        // Botón para cambiar foto (Solo Admin)
+                                        State.isAdmin ? m("label", {
+                                            style: "position: absolute; bottom: 10px; right: 10px; background: var(--primary); color: white; width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"
+                                        }, [
+                                            m("input[type=file][accept=image/*]", {
+                                                style: "display: none;",
+                                                onchange: handleProfilePicUpload
+                                            }),
+                                            "📷"
+                                        ]) : null
                                     ]),
 
-                                    // Info básica
+                                    // Info básica (Nombre y Fechas)
                                     m("div", { style: "text-align: center;" }, [
-                                        m("h1.name", { style: "font-size: 2.5rem; margin-bottom: 0;" }, p.name),
-                                        m(".dates", { style: "opacity: 0.7; font-size: 0.9rem; margin-top: 10px;" }, [
-                                            m("span", p.birth),
-                                            m("span", { style: "margin: 0 10px; font-weight: 300;" }, "|"),
-                                            m("span", p.death)
+                                        // NOMBRE + Botón editar
+                                        m("div", { style: "display: flex; justify-content: center; align-items: center; gap: 10px;" }, [
+                                            m("h1.name", { style: "font-size: 2.5rem; margin-bottom: 0;" }, p.name),
+                                            State.isAdmin ? m("button.btn-circle", {
+                                                style: "width: 30px; height: 30px; font-size: 1rem; background: #eee; color: #333;",
+                                                onclick: function () {
+                                                    showPrompt("Editar Nombre", p.name, function (val) { updateProfile('name', val); });
+                                                }
+                                            }, "✏️") : null
+                                        ]),
+
+                                        // FECHAS + Botón editar
+                                        m(".dates", { style: "opacity: 0.7; font-size: 0.9rem; margin-top: 10px; display: flex; justify-content: center; align-items: center; gap: 10px;" }, [
+                                            m("span", p.birth + " | " + p.death),
+                                            State.isAdmin ? m("button.btn-circle", {
+                                                style: "width: 25px; height: 25px; font-size: 0.8rem; background: #eee; color: #333;",
+                                                onclick: function () {
+                                                    showPrompt("Fechas (Nacimiento | Partida)", p.birth, function (val) {
+                                                        updateProfile('birth', val);
+                                                        setTimeout(function () {
+                                                            var nuevaMuerte = prompt("Fecha de Partida:", p.death);
+                                                            if (nuevaMuerte) updateProfile('death', nuevaMuerte);
+                                                        }, 500);
+                                                    });
+                                                }
+                                            }, "✏️") : null
                                         ]),
 
                                         // Botones de interacción
@@ -755,37 +847,28 @@
                                                 }, "🕯️"),
                                                 m("button.btn-circle", {
                                                     onclick: function () {
-                                                        var currentUrl = window.location.href;// 1. Cogemos la dirección actual del navegador
-
-                                                        // 2. Intentamos escribirla en el portapapeles
+                                                        var currentUrl = window.location.href;
                                                         navigator.clipboard.writeText(currentUrl)
-                                                            .then(function () {
-                                                                // Si funciona:
-                                                                showToast("🔗 Enlace copiado al portapapeles");
-                                                            })
-                                                            .catch(function (err) {
-                                                                // Si falla (por permisos o navegador muy viejo):
-                                                                console.error("Error al copiar:", err);
-                                                                showToast("❌ No se pudo copiar el enlace");
-                                                            });
+                                                            .then(function () { showToast("🔗 Enlace copiado"); })
+                                                            .catch(function (err) { console.error(err); showToast("❌ Error al copiar"); });
                                                     }
                                                 }, "🔗"),
                                                 m("button.btn-circle", {
                                                     onclick: function () { window.print(); }
                                                 }, "📄"),
+                                                // EDICIÓN DE BIO
                                                 State.isAdmin ? m("button.btn-circle", {
-                                                    style: "background: #f8f9fa;",
+                                                    style: "background: #f8f9fa; border: 1px solid var(--primary);",
                                                     onclick: function () {
                                                         showPrompt("Editar biografía", p.bio, function (nb) {
-                                                            p.bio = nb;
-                                                            showToast("Bio actualizada (Local)"); // Nota: Aquí faltaría conectar con BD si quisieras guardar la bio permanentemente
+                                                            updateProfile('bio', nb);
                                                         });
                                                     }
-                                                }, "✏️") : null
+                                                }, "✏️ Bio") : null
                                             ])
                                         ]),
 
-                                        // Biografía
+                                        // Biografía Texto
                                         m("div", {
                                             style: "position: relative; padding: 40px 10px; margin: 0 auto;"
                                         }, [
@@ -815,20 +898,16 @@
                                                     src: imgData.src,
                                                     onclick: function () { State.modalImage = imgData.src; }
                                                 }),
-                                                // Etiqueta sutil con el nombre del autor
                                                 m("div", {
                                                     style: "position: absolute; bottom: 0; background: rgba(0,0,0,0.5); color: #fff; width: 100%; font-size: 0.7rem; padding: 5px;"
                                                 }, "Subida por: " + (imgData.uploader_name || "Anónimo")),
 
                                                 State.isAdmin ? m("button.btn-delete", {
-                                                    onclick: function () {
-                                                        deletePhoto(imgData.id);//Llamada a la función deletePhoto existente
-                                                    }
+                                                    onclick: function () { deletePhoto(imgData.id); }
                                                 }, "×") : null
                                             ]);
                                         }),
 
-                                        // Botón añadir foto
                                         m("label.gallery-item", {
                                             style: "border: 2px dashed #ccc; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; background: #fafafa;"
                                         }, [
@@ -836,12 +915,8 @@
                                                 style: "display: none;",
                                                 onchange: handleFileUpload
                                             }),
-                                            m("span", {
-                                                style: "font-size: 2rem; color: var(--accent);"
-                                            }, "+"),
-                                            m("span", {
-                                                style: "font-size: 0.7rem; color: #888; font-weight: 600; margin-top: 5px;"
-                                            }, "AÑADIR FOTO")
+                                            m("span", { style: "font-size: 2rem; color: var(--accent);" }, "+"),
+                                            m("span", { style: "font-size: 0.7rem; color: #888; font-weight: 600; margin-top: 5px;" }, "AÑADIR FOTO")
                                         ]),
                                     ]),
 
@@ -910,8 +985,8 @@
                                             m("button.btn-action", { style: "width: 100%;" }, "Publicar Testimonio")
                                         ])
                                     ])
-                                ]) // Fin Main Content
-                            ]) // Fin Profile Grid
+                                ])
+                            ])
                         ])
                     ]);
                 }
