@@ -129,8 +129,9 @@ p,
 
 .name {
     font-size: 2.5rem;
-    margin: 20px 0 0 0;
+    margin: 0; /* Quitamos el margin para controlar el salto desde el padre */
     color: var(--primary);
+    line-height: 1;
 }
 
 .dates-row {
@@ -259,6 +260,8 @@ p,
     font-size: 0.8rem;
     background: #eee;
     color: #333;
+    transform: translateY(-5px); 
+    flex-shrink: 0;
 }
 
 .btn-bio-edit {
