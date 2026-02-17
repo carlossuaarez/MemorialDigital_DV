@@ -72,7 +72,7 @@ function MemorialCard() {
 
                         // --- COLUMNA DERECHA ---
                         m(".main-content", [
-                            m("h3.section-title", [m("span", { style: "background: #fff; padding: 20px;" }, "Recuerdos")]),
+                            m("h3.section-title", [m("span", { style: "padding: 20px;" }, "Recuerdos")]),
                             m(".gallery.gallery-clean", [
                                 p.gallery.map(function (imgData) {
                                     return m(".gallery-item", [
@@ -89,7 +89,7 @@ function MemorialCard() {
                                 ]),
                             ]),
 
-                            m("h3.section-title", [m("span", { style: "background: #fff; padding: 0 20px;" }, "Testimonios")]),
+                            m("h3.section-title", [m("span", { style: "padding: 0 20px;" }, "Testimonios")]),
                             m(".dedication-grid.dedication-grid-clean", p.messages.map(function (msg) {
                                 return m(".dedication-card.dedication-card-clean", [
                                     State.isAdmin ? m("button.btn-msg-delete", { onclick: function () { deleteMessage(msg); } }, "🗑️") : null,

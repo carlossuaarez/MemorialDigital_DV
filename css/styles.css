@@ -10,6 +10,38 @@
     --danger: #e17055;
     --success: #55efc4;
     --border-soft: rgba(0, 0, 0, 0.06);
+    --card-bg: #ffffff;
+}
+
+/* Colores para MODO OSCURO */
+html.dark {
+    --primary: #dfe6e9;
+    --accent: #a2b3a5;
+    --bg: #1a1d1e;
+    --white: #2d3436;
+    --text-main: #f2f2f0;
+    --text-muted: #b2bec3;
+    --shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    --border-soft: rgba(255, 255, 255, 0.1);
+    --card-bg: #252829;
+}
+
+html.dark .header {
+    --header-bg: rgba(26, 29, 30, 0.85);
+}
+
+.nav-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.theme-toggle-wrapper {
+    position: absolute;
+    right: 0;
 }
 
 body {
@@ -18,6 +50,7 @@ body {
     margin: 0;
     color: var(--text-main);
     scroll-behavior: smooth;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* 2. TIPOGRAFÍA */
@@ -44,7 +77,7 @@ p,
 
 .header {
     backdrop-filter: blur(15px);
-    background: rgba(255, 255, 255, 0.85);
+    background: var(--header-bg, rgba(255, 255, 255, 0.85));
     padding: 1.2rem;
     border-bottom: 1px solid var(--border-soft);
     position: sticky;
@@ -73,6 +106,7 @@ p,
     padding-bottom: 40px;
     border: none;
     overflow: visible;
+    transition: background 0.3s ease;
 }
 
 .cover-photo {
@@ -129,7 +163,8 @@ p,
 
 .name {
     font-size: 2.5rem;
-    margin: 0; /* Quitamos el margin para controlar el salto desde el padre */
+    margin: 0;
+    /* Quitamos el margin para controlar el salto desde el padre */
     color: var(--primary);
     line-height: 1;
 }
@@ -158,8 +193,8 @@ p,
     gap: 15px;
     margin-top: 20px;
     margin-bottom: 30px;
-    border-top: 1px solid #c9c9c5;
-    border-bottom: 1px solid #c9c9c5;
+    border-top: 1px solid var(--border-soft);
+    border-bottom: 1px solid var(--border-soft);
     padding: 20px 0;
 }
 
@@ -173,18 +208,20 @@ p,
     position: relative;
     padding: 40px 10px;
     margin: 0 auto;
+    background: transparent;
 }
 
 .bio-text {
     font-size: 1.1rem !important;
     text-align: justify !important;
     font-family: 'Lora', serif;
-    color: #555;
+    color: var(--text-main) !important;
     line-height: 1.6;
     font-style: italic;
     margin: 0;
     position: relative;
     z-index: 1;
+    transition: color 0.3s ease;
 }
 
 .quote-mark {
@@ -231,8 +268,9 @@ p,
 
 .btn-action {
     background: var(--primary);
-    color: white;
+    color: var(--bg);
     padding: 18px;
+    margin-top: 5px;
     border: none;
     border-radius: 20px;
     cursor: pointer;
@@ -260,13 +298,13 @@ p,
     font-size: 0.8rem;
     background: #eee;
     color: #333;
-    transform: translateY(-5px); 
+    transform: translateY(-5px);
     flex-shrink: 0;
 }
 
 .btn-bio-edit {
-    background: #f8f9fa !important;
-    border: 1px solid var(--primary) !important;
+    background: var(--card-bg) !important;
+    border-color: var(--primary) !important;
     color: var(--primary) !important;
     width: auto !important;
     padding: 0 15px !important;
@@ -300,7 +338,7 @@ p,
     content: "";
     flex: 1;
     height: 1px;
-    background: rgba(0, 0, 0, 0.1);
+    background: var(--border-soft);
     margin: 0 20px;
 }
 
@@ -317,7 +355,8 @@ p,
     border-radius: 24px;
     height: 250px;
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-    border: 4px solid var(--white);
+    border: 4px solid var(--card-bg);
+    background: var(--card-bg);
 }
 
 .gallery-item img {
@@ -344,13 +383,14 @@ p,
 }
 
 .gallery-add-card {
-    border: 2px dashed #ccc;
+    border: 2px dashed var(--text-muted);
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     cursor: pointer;
-    background: #fafafa;
+    background: var(--bg);
+    transition: background 0.3s ease;
 }
 
 .add-icon {
@@ -360,7 +400,7 @@ p,
 
 .add-text {
     font-size: 0.7rem;
-    color: #888;
+    color: var(--text-muted);
     font-weight: 600;
     margin-top: 5px;
 }
@@ -388,13 +428,14 @@ p,
 }
 
 .dedication-card {
-    background: var(--white);
+    background: var(--card-bg);
     padding: 25px;
     border-radius: 30px;
     box-shadow: var(--shadow);
     border-left: 3px solid var(--accent);
     position: relative;
     text-align: left;
+    transition: background 0.3s ease;
 }
 
 .author {
@@ -407,7 +448,7 @@ p,
 
 .message {
     font-size: 1.3rem;
-    color: var(--primary);
+    color: var(--text-main);
     margin: 0;
     font-style: italic;
 }
@@ -423,11 +464,13 @@ p,
 }
 
 .form-card {
-    background: #fafafa;
-    padding: 40px;
+    background: var(--card-bg) !important;
+    padding: 30px;
     border-radius: 30px;
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--border-soft);
     box-shadow: var(--shadow);
+    transition: background 0.3s ease;
+    border-color: var(--border-soft) !important;
 }
 
 .form-title {
@@ -448,14 +491,15 @@ p,
 
 .form-card input,
 .form-card textarea {
-    border: 1px solid #ada8a8;
-    background: #fff;
+    border: 1px solid var(--border-soft) !important;
+    background: var(--bg) !important;
     padding: 14px 18px;
     border-radius: 12px;
     width: 100%;
     box-sizing: border-box;
     font-family: inherit;
     transition: 0.3s;
+    color: var(--text-main) !important;
 }
 
 .form-card textarea {
@@ -748,6 +792,30 @@ p,
     color: white;
 }
 
+.theme-toggle {
+    background: var(--primary);
+    color: var(--bg);
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow);
+}
+
+.theme-toggle:hover {
+    transform: scale(1.1);
+}
+
+.theme-toggle svg {
+    stroke: var(--bg);
+    /* El icono usa el color de fondo para contrastar */
+}
+
 /* 12. DISEÑO HORIZONTAL (LAYOUT GRID RESPONSIVE) */
 .profile-grid {
     display: grid;
@@ -780,4 +848,99 @@ p,
         margin-top: 20px;
         margin-bottom: 30px;
     }
+}
+
+/* Ajustes para inputs y textareas en modo oscuro */
+.form-card input,
+.form-card textarea,
+.admin-panel-card input,
+.dialog-textarea {
+    background: var(--bg) !important;
+    color: var(--text-main) !important;
+    border: 1px solid var(--border-soft) !important;
+}
+
+/* Ajustes para tarjetas de administración y diálogos */
+.admin-panel-card,
+.dialog-box {
+    background: var(--card-bg) !important;
+    color: var(--text-main);
+    border: 1px solid var(--border-soft);
+}
+
+/* Ajuste del botón de tema para que el icono cambie de color correctamente */
+.theme-toggle {
+    background: var(--primary);
+    color: var(--bg);
+}
+
+.theme-toggle svg {
+    stroke: var(--bg);
+}
+
+
+
+/* Estabilizar el brillo de las imágenes en modo oscuro */
+html.dark .gallery-item img,
+html.dark .profile-pic,
+html.dark .cover-photo {
+    filter: brightness(0.8) grayscale(10%);
+}
+
+/* --- CORRECCIÓN DE RECUADROS BLANCOS EN MODO OSCURO --- */
+
+/* 1. Fondo del formulario de testimonios y su botón */
+.form-card {
+    background: var(--card-bg) !important;
+    border-color: var(--border-soft) !important;
+}
+
+.form-card input, 
+.form-card textarea {
+    background: var(--bg) !important;
+    color: var(--text-main) !important;
+    border: 1px solid var(--border-soft) !important;
+}
+
+/* 2. Tarjetas de testimonios ya publicados */
+.dedication-card {
+    background: var(--card-bg) !important;
+    border-left: 3px solid var(--accent) !important;
+}
+
+.dedication-card .message {
+    color: var(--text-main) !important;
+}
+
+.dedication-card .author {
+    color: var(--accent) !important;
+}
+
+/* 3. Galería de Recuerdos */
+.gallery-item {
+    background: var(--card-bg) !important;
+    border: 4px solid var(--card-bg) !important;
+}
+
+.gallery-add-card {
+    background: var(--bg) !important;
+    border: 2px dashed var(--border-soft) !important;
+}
+
+.gallery-add-card .add-icon, 
+.gallery-add-card .add-text {
+    color: var(--text-muted) !important;
+}
+
+/* 4. El botón de publicar (btn-action) */
+.btn-action {
+    background: var(--primary) !important;
+    color: var(--bg) !important; /* Texto oscuro sobre fondo claro en modo dark */
+}
+
+/* 5. Sombras en modo oscuro (opcional pero recomendado) */
+html.dark .memorial-card, 
+html.dark .dedication-card, 
+html.dark .form-card {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
 }
