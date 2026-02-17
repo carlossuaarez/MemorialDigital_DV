@@ -110,7 +110,7 @@ function MemorialCard() {
                                         }
                                         m.request({
                                             method: "POST",
-                                            url: `sqlite.php/rdb/${DB}/testimonios`,
+                                            url: `${API_URL}/rdb/${DB}/testimonios`,
                                             body: { author: State.newAuthor, text: txt }
                                         }).then(function (res) {
                                             if (res && res.ok) { showToast("✨ Mensaje publicado"); State.newAuthor = ""; State.newMessage = ""; fetchData(); }
