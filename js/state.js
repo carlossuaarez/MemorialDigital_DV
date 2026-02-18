@@ -2,7 +2,13 @@ const DB = "memorial_db";
 const API_URL = "../server/sqlite.php"; 
 
 var State = {
+    access: {
+        granted: false,
+        code: "",
+        error: ""
+    },
     deceased: {
+        id: null, 
         name: "",
         birth: "",
         death: "",

@@ -950,3 +950,44 @@ html.dark .dedication-card,
 html.dark .form-card {
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
 }
+
+.nav-controls {
+    position: absolute;
+    right: 20px;
+}
+
+.logout-container {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.logout-button {
+    background: transparent;
+    border: 1px solid var(--border-soft);
+    color: var(--text-muted);
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.logout-button:hover {
+    background: var(--bg);
+    color: #e74c3c; 
+    border-color: #e74c3c;
+    box-shadow: 0 2px 8px rgba(231, 76, 60, 0.2);
+}
+
+/* Botón de tema a la DERECHA del todo */
+.theme-toggle-wrapper {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+}

@@ -1,13 +1,14 @@
 function fetchData() {
-    // 1. CARGAR PERFIL (ID 1)
+    var currentId = State.deceased.id;
+    if (!currentId) return;
+
     m.request({
         method: "GET",
-        url: `${API_URL}/rdb/${DB}/perfil`
+        url: `${API_URL}/rdb/${DB}/perfil/${currentId}`
     })
         .then(function (res) {
             if (res && res.items && res.items.length > 0) {
-                var dbData = res.items.find(function (i) { return i.id == 1; }) || res.items[0];
-
+                var dbData = res.items[0];
                 State.deceased.name = dbData.name || "";
                 State.deceased.birth = dbData.birth || "";
                 State.deceased.death = dbData.death || "";
@@ -17,28 +18,31 @@ function fetchData() {
             }
         }).catch(function (e) { console.error("Error Perfil:", e); });
 
-    // 2. CARGAR GALERÍA
-    m.request({
-        method: "GET",
-        url: `${API_URL}/rdb/${DB}/fotos`
-    })
-        .then(function (res) {
-            State.deceased.gallery = (res && res.items) ? res.items : [];
-            m.redraw();
-        }).catch(function (e) { console.error("Error Fotos:", e); });
-
-    // 3. CARGAR TESTIMONIOS
-    m.request({
-        method: "GET",
-        url: `${API_URL}/rdb/${DB}/testimonios`
-    })
-        .then(function (res) {
-            State.deceased.messages = (res && res.items) ? res.items : [];
-            m.redraw();
-        }).catch(function (e) { console.error("Error Testimonios:", e); });
+    Actions.loadContent(currentId);
 }
 
-fetchData();
+function updateProfile(field, value) {
+    var currentId = State.deceased.id;
+    if (!currentId) return;
+
+    State.deceased[field] = value;
+
+    var payload = { id: currentId };
+    payload[field] = value;
+
+    m.request({
+        method: "PUT",
+        url: `${API_URL}/rdb/${DB}/perfil/${currentId}`,
+        body: payload
+    })
+        .then(function (res) {
+            showToast("💾 Guardado");
+        })
+        .catch(function (err) {
+            console.error("Error al guardar:", err);
+            showToast("❌ Error al guardar");
+        });
+}
 
 function updateProfile(field, value) {
     State.deceased[field] = value;
@@ -114,10 +118,11 @@ function deleteMessage(msgObj) {
 }
 
 function handleFileUpload(e) {
+    var currentId = State.deceased.id;
     var file = e.target.files[0];
     var autor = prompt("¿Quién comparte este recuerdo?", "Anónimo");
 
-    if (file) {
+    if (file && currentId) {
         var reader = new FileReader();
         reader.onload = function (event) {
             m.request({
@@ -125,16 +130,14 @@ function handleFileUpload(e) {
                 url: `${API_URL}/rdb/${DB}/fotos`,
                 body: {
                     src: event.target.result,
-                    uploader_name: autor || "Anónimo"
+                    uploader_name: autor || "Anónimo",
+                    perfil_id: currentId
                 }
             })
                 .then(function (res) {
                     if (res && res.ok) {
                         showToast("📸 Foto guardada");
                         fetchData();
-                    } else {
-                        console.error("Error server:", res);
-                        showToast("❌ Error al subir");
                     }
                 });
         };
@@ -152,3 +155,60 @@ function handleProfilePicUpload(e) {
         reader.readAsDataURL(file);
     }
 }
+
+const Actions = {
+    verifyCode: function (code) {
+        return m.request({
+            method: "GET",
+            url: `${API_URL}/rdb/${DB}/perfil?codigo=${code}`
+        }).then(result => {
+            if (result && result.items && result.items.length > 0) {
+                State.deceased = result.items[0];
+                State.access.code = code;
+                State.access.granted = true;
+                State.access.error = "";
+
+                localStorage.setItem("memorial_access_code", code);
+
+                this.loadContent(State.deceased.id);
+                m.redraw();
+            } else {
+                State.access.error = "Código no válido";
+                State.access.granted = false;
+                m.redraw();
+            }
+        }).catch(err => {
+            State.access.error = "Error de conexión";
+            m.redraw();
+        });
+    },
+
+    logout: function () {
+        localStorage.removeItem("memorial_access_code");
+        State.access.granted = false;
+        State.access.code = "";
+        State.deceased = { id: null, name: "", gallery: [], messages: [] };
+        window.history.replaceState({}, document.title, window.location.pathname);
+        m.redraw();
+    },
+
+    loadContent: function (perfilId) {
+        if (!perfilId) return;
+
+        m.request({
+            method: "GET",
+            url: `${API_URL}/rdb/${DB}/fotos?perfil_id=${perfilId}`
+        }).then(r => {
+            State.deceased.gallery = r.items || [];
+            m.redraw();
+        });
+
+        m.request({
+            method: "GET",
+            url: `${API_URL}/rdb/${DB}/testimonios?perfil_id=${perfilId}`
+        }).then(r => {
+            State.deceased.messages = r.items || [];
+            m.redraw();
+        });
+    }
+};
