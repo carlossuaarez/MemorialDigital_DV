@@ -1,0 +1,5 @@
+# Bases de datos SQLite
+memorial_db.db
+
+# Si tienes archivos SQL de respaldo
+*.sql
