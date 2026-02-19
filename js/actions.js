@@ -44,33 +44,6 @@ function updateProfile(field, value) {
         });
 }
 
-function updateProfile(field, value) {
-    State.deceased[field] = value;
-    var payload = { id: 1 };
-    payload[field] = value;
-
-    m.request({
-        method: "PUT",
-        url: `${API_URL}/rdb/${DB}/perfil/1`,
-        body: payload
-    })
-        .then(function (res) {
-            showToast("💾 Guardado");
-        })
-        .catch(function (err) {
-            m.request({
-                method: "PUT",
-                url: `${API_URL}/rdb/${DB}/perfil`,
-                body: payload
-            }).then(function () {
-                showToast("💾 Guardado");
-            }).catch(function (err2) {
-                console.error("Fallo crítico al guardar:", err2);
-                showToast("❌ Error al guardar");
-            });
-        });
-}
-
 function showToast(text) {
     var id = Date.now();
     State.toasts.push({ id: id, text: text });
