@@ -90,9 +90,34 @@ function deleteMessage(msgObj) {
     });
 }
 
+// Límite de 4MB
+const MAX_FILE_SIZE = 4 * 1024 * 1024;
+
+// Función auxiliar para validar que sea una imagen
+function isImage(file) {
+    return file && file.type.startsWith('image/');
+}
+
 function handleFileUpload(e) {
     var currentId = State.deceased.id;
     var file = e.target.files[0];
+
+    if (!file) return;
+
+    // VALIDACIÓN: Solo imágenes
+    if (!isImage(file)) {
+        alert("Formato de archivo no válido. Suba un archivo de imagen");
+        e.target.value = "";
+        return;
+    }
+
+    // VALIDACIÓN: Tamaño
+    if (file.size > MAX_FILE_SIZE) {
+        alert("La imagen es demasiado grande. El límite es de 4 MB.");
+        e.target.value = "";
+        return;
+    }
+
     var autor = prompt("¿Quién comparte este recuerdo?", "Anónimo");
 
     if (file && currentId) {
@@ -120,13 +145,27 @@ function handleFileUpload(e) {
 
 function handleProfilePicUpload(e) {
     var file = e.target.files[0];
-    if (file) {
-        var reader = new FileReader();
-        reader.onload = function (event) {
-            updateProfile('photo', event.target.result);
-        };
-        reader.readAsDataURL(file);
+    if (!file) return;
+
+    // VALIDACIÓN: Solo imágenes
+    if (!isImage(file)) {
+        alert("Formato de archivo no válido. Suba un archivo de imagen");
+        e.target.value = "";
+        return;
     }
+
+    // VALIDACIÓN: Tamaño
+    if (file.size > MAX_FILE_SIZE) {
+        alert("La imagen de perfil es demasiado grande (máximo 4 MB).");
+        e.target.value = "";
+        return;
+    }
+
+    var reader = new FileReader();
+    reader.onload = function (event) {
+        updateProfile('photo', event.target.result);
+    };
+    reader.readAsDataURL(file);
 }
 
 const Actions = {

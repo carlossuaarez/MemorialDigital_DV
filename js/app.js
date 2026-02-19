@@ -10,7 +10,7 @@ function LoginScreen() {
                 m("input[type=text]", {
                     style: "padding: 10px; border-radius: 8px; border: 1px solid #ccc; margin-bottom: 15px;",
                     oninput: e => tempCode = e.target.value,
-                    placeholder: "Ej: TEST1",
+                    placeholder: "Ej: TEST1 o AMIGO2",
                     value: tempCode
                 }),
                 m("button.btn-action", {
