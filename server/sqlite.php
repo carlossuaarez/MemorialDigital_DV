@@ -86,8 +86,7 @@ function rdb_select($database,$table,$docid=NULL) {
     // Copia directa para pruebas o cache
 
     if (!empty($docid)) {
-        return print "NO IMPLEMENTADO";
-        header("Content-Type: application/json");
+        $_REQUEST['id'] = $docid; 
     }
 
     /// Comprobamos si hay una consulta

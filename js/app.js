@@ -29,40 +29,32 @@ function App() {
             const params = new URLSearchParams(window.location.search);
             const urlCode = params.get("code");
             const savedCode = localStorage.getItem("memorial_access_code");
-
             const codeToUse = urlCode || savedCode;
 
-            if (codeToUse) {
-                Actions.verifyCode(codeToUse);
-            }
+            if (codeToUse) Actions.verifyCode(codeToUse);
         },
         view: function () {
             return m("div", [
-                m("nav.header",
-                    m(".nav-container", [
-                        // CONTENEDOR IZQUIERDA
-                        m(".logout-container",
-                            State.access.granted ? m("button.logout-button", {
-                                onclick: Actions.logout
-                            }, "Salir") : null
-                        ),
+                m("nav.header", m(".nav-container", [
+                    m(".logout-container", 
+                        State.access.granted ? m("button.logout-button", { onclick: Actions.logout }, "Salir") : null
+                    ),
+                    m("h2.nav-title", "GARDEN OF REMEMBRANCE"),
+                    m(".theme-toggle-wrapper", m(ThemeToggle))
+                ])),
 
-                        // CENTRO
-                        m("h2.nav-title", "GARDEN OF REMEMBRANCE"),
-
-                        // CONTENEDOR DERECHA
-                        m(".theme-toggle-wrapper", m(ThemeToggle))
-                    ])
-                ),
-
-                !State.access.granted
-                    ? m(LoginScreen)
-                    : [
-                        m(MemorialCard),
-                        m(GalleryModal),
-                        m(AdminControl),
-                        m(NotificationSystem)
-                    ],
+                // LÓGICA DE VISTAS
+                !State.access.granted 
+                    ? m(LoginScreen) 
+                    : (State.access.isAdmin 
+                        ? m(AdminPanel) // Si es Admin, mostramos el panel de creación
+                        : [
+                            m(MemorialCard),
+                            m(GalleryModal),
+                            m(AdminControl),
+                            m(NotificationSystem)
+                          ]
+                    ),
 
                 m(Footer)
             ]);

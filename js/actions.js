@@ -25,10 +25,11 @@ function updateProfile(field, value) {
     var currentId = State.deceased.id;
     if (!currentId) return;
 
-    State.deceased[field] = value;
+    let cleanValue = (field === 'birth' || field === 'death') ? parseInt(value) : value;
 
+    State.deceased[field] = cleanValue;
     var payload = { id: currentId };
-    payload[field] = value;
+    payload[field] = cleanValue;
 
     m.request({
         method: "PUT",
@@ -178,6 +179,7 @@ const Actions = {
                 State.deceased = result.items[0];
                 State.access.code = code;
                 State.access.granted = true;
+                State.access.isAdmin = false; // Si es un perfil, NO es admin
                 State.access.error = "";
 
                 localStorage.setItem("memorial_access_code", code);
@@ -199,6 +201,7 @@ const Actions = {
         localStorage.removeItem("memorial_access_code");
         State.access.granted = false;
         State.access.code = "";
+        State.access.isAdmin = false; // Resetear el permiso de admin
         State.deceased = { id: null, name: "", gallery: [], messages: [] };
         window.history.replaceState({}, document.title, window.location.pathname);
         m.redraw();
@@ -223,4 +226,43 @@ const Actions = {
             m.redraw();
         });
     }
+};
+
+// --- NUEVA FUNCIÓN PARA EL ADMIN ---
+const AdminActions = {
+    createProfile: function (data) {
+        if (!data.codigo || data.codigo.trim() === "") {
+            data.codigo = Math.random().toString(36).substring(2, 7).toUpperCase();
+        }
+
+        if (!data.photo) {
+            data.photo = defaultPhoto;
+        }
+
+        return m.request({
+            method: "POST",
+            url: `${API_URL}/rdb/${DB}/perfil`,
+            body: data
+        }).then(res => {
+            showToast("✅ Registro completado");
+            return { ok: true, data: data };
+        }).catch(err => {
+            console.error("Error en el servidor:", err);
+            showToast("❌ Error al guardar en la base de datos");
+            throw err;
+        });
+    }
+};
+
+const OriginalVerifyCode = Actions.verifyCode;
+Actions.verifyCode = function (code) {
+    // Usamos minúsculas para evitar fallos por teclado móvil
+    if (code.toLowerCase() === "admin2026") {
+        State.access.isAdmin = true;
+        State.access.granted = true;
+        State.access.code = code;
+        m.redraw();
+        return Promise.resolve();
+    }
+    return OriginalVerifyCode.call(this, code);
 };

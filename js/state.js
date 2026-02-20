@@ -1,19 +1,21 @@
 const DB = "memorial_db";
-const API_URL = "../server/sqlite.php"; 
-//const API_URL = "https://public.digitalvalue.es/github/tests2/botcamp2026/MemorialDigital/server/sqlite.php";
+const API_URL = "../server/sqlite.php";
+// const API_URL = "https://public.digitalvalue.es/github/tests2/botcamp2026/MemorialDigital/server/sqlite.php";
+const defaultPhoto = "./assets/defaultPfp.png";
 
 var State = {
     access: {
         granted: false,
         code: "",
-        error: ""
+        error: "",
+        isAdmin: false,
     },
     deceased: {
-        id: null, 
+        id: null,
         name: "",
         birth: "",
         death: "",
-        photo: "https://pro.campus.sanofi/.imaging/mte/portal/256/dam/Portal/Spain/articulos/dislipemia/whats-next-2024/perfil.png/jcr:content/perfil.png",
+        photo: defaultPhoto,
         bio: "",
         gallery: [],
         messages: []

@@ -12,8 +12,8 @@ try {
         id INTEGER PRIMARY KEY AUTOINCREMENT, 
         codigo TEXT UNIQUE, 
         name TEXT, 
-        birth TEXT, 
-        death TEXT, 
+        birth INTEGER, 
+        death INTEGER, 
         bio TEXT, 
         photo TEXT
     )");

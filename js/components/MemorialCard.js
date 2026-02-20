@@ -47,7 +47,10 @@ function MemorialCard() {
                                         m("button.btn-circle", { onclick: function () { State.velas++; showToast("🕯️ Homenaje enviado"); } }, "🕯️"),
                                         m("button.btn-circle", {
                                             onclick: function () {
-                                                navigator.clipboard.writeText(window.location.href).then(function () { showToast("🔗 Enlace copiado"); });
+                                                const shareUrl = window.location.origin + window.location.pathname + "?code=" + State.access.code;
+                                                navigator.clipboard.writeText(shareUrl).then(function () {
+                                                    showToast("🔗 Enlace copiado al portapapeles");
+                                                });
                                             }
                                         }, "🔗"),
                                         m("button.btn-circle", { onclick: function () { window.print(); } }, "📄"),
@@ -66,7 +69,6 @@ function MemorialCard() {
                         m(".main-content", [
                             m("h3.section-title", [m("span", { style: "padding: 20px;" }, "Recuerdos")]),
                             m(".gallery.gallery-clean", [
-                                // CAMBIO AQUÍ: Usamos la variable segura 'gallery'
                                 gallery.map(function (imgData) {
                                     return m(".gallery-item", [
                                         m("img", { src: imgData.src, onclick: function () { State.modalImage = imgData.src; } }),
