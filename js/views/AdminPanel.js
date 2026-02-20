@@ -1,7 +1,26 @@
 function AdminPanel() {
-    let newProfile = { name: "", birth: "", death: "", bio: "", codigo: "" };
+    let newProfile = { name: "", birth: "", death: "", bio: "", codigo: "", photo: "" };
     let lastCreatedLink = "";
     const currentYear = new Date().getFullYear();
+
+    // Función auxiliar para procesar la imagen del archivo
+    const handleFileSelect = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        if (file.size > 4 * 1024 * 1024) { // Límite de 4MB
+            alert("La imagen es demasiado grande (máximo 4MB)");
+            e.target.value = "";
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            newProfile.photo = event.target.result;
+            m.redraw();
+        };
+        reader.readAsDataURL(file);
+    };
 
     return {
         view: function () {
@@ -53,12 +72,27 @@ function AdminPanel() {
                             })
                         ])
                     ]),
-                    // m("label", { style: "display: block; margin-top: 15px;" }, "Código personalizado (opcional)"),
-                    // m("input[type=text]", {
-                    //     oninput: e => newProfile.codigo = e.target.value.toUpperCase(),
-                    //     value: newProfile.codigo,
-                    //     placeholder: "Ej: MARIA24"
-                    // }),
+
+                    // NUEVO: Campo de Bio
+                    m("label", { style: "display: block; margin-top: 15px;" }, "Biografía (Opcional)"),
+                    m("textarea", {
+                        style: "width: 100%; min-height: 80px; padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-family: inherit;",
+                        oninput: e => newProfile.bio = e.target.value,
+                        value: newProfile.bio,
+                        placeholder: "Escriba una breve historia..."
+                    }),
+
+                    // NUEVO: Campo de Foto de Perfil (Solo archivo)
+                    m("label", { style: "display: block; margin-top: 15px;" }, "Foto de Perfil (Opcional)"),
+                    m("input[type=file][accept=image/*]", {
+                        style: "margin-bottom: 10px;",
+                        onchange: handleFileSelect
+                    }),
+                    newProfile.photo ? m("img", {
+                        src: newProfile.photo,
+                        style: "display: block; width: 60px; height: 60px; object-fit: cover; border-radius: 50%; border: 2px solid #ccc;"
+                    }) : null,
+
                     m("button.btn-action", {
                         style: "width: 100%; margin-top: 25px; background: #2c3e50; color: white; padding: 12px;",
                         onclick: () => {
@@ -77,14 +111,22 @@ function AdminPanel() {
                                 return alert("El año de defunción no puede ser menor al de nacimiento");
                             }
 
-                            newProfile.birth = birth;
-                            newProfile.death = death;
+                            // Preparar datos finales con autocompletado
+                            const profileToSend = {
+                                ...newProfile,
+                                birth: birth,
+                                death: death,
+                                bio: newProfile.bio || "", // Cadena vacía si no hay bio
+                                photo: newProfile.photo || defaultPhoto // Foto predeterminada desde state.js
+                            };
 
-                            AdminActions.createProfile(newProfile).then(res => {
+                            AdminActions.createProfile(profileToSend).then(res => {
                                 const baseUrl = window.location.origin + window.location.pathname;
-                                const finalCode = newProfile.codigo || res.data.codigo;
+                                const finalCode = profileToSend.codigo || res.data.codigo;
                                 lastCreatedLink = `${baseUrl}?code=${finalCode}`;
-                                newProfile = { name: "", birth: "", death: "", bio: "", codigo: "" };
+
+                                // Resetear formulario
+                                newProfile = { name: "", birth: "", death: "", bio: "", codigo: "", photo: "" };
                                 m.redraw();
                             });
                         }

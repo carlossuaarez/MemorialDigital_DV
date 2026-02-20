@@ -249,7 +249,7 @@ const Actions = {
 const AdminActions = {
     createProfile: function (data) {
         if (!data.codigo || data.codigo.trim() === "") {
-            data.codigo = Math.random().toString(36).substring(2, 7).toUpperCase();
+            data.codigo = Math.random().toString(36).substring(2, 8).padEnd(6, '0').toUpperCase();
         }
 
         if (!data.photo) {
