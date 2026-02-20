@@ -53,14 +53,12 @@ function AdminPanel() {
                             })
                         ])
                     ]),
-
-                    m("label", { style: "display: block; margin-top: 15px;" }, "Código personalizado (opcional)"),
-                    m("input[type=text]", {
-                        oninput: e => newProfile.codigo = e.target.value.toUpperCase(),
-                        value: newProfile.codigo,
-                        placeholder: "Ej: MARIA24"
-                    }),
-
+                    // m("label", { style: "display: block; margin-top: 15px;" }, "Código personalizado (opcional)"),
+                    // m("input[type=text]", {
+                    //     oninput: e => newProfile.codigo = e.target.value.toUpperCase(),
+                    //     value: newProfile.codigo,
+                    //     placeholder: "Ej: MARIA24"
+                    // }),
                     m("button.btn-action", {
                         style: "width: 100%; margin-top: 25px; background: #2c3e50; color: white; padding: 12px;",
                         onclick: () => {

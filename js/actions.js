@@ -197,6 +197,23 @@ const Actions = {
         });
     },
 
+    // NUEVA FUNCIÓN: Verificación para Administrador
+    verifyAdmin: function (code, password) {
+        // AQUÍ DEFINES LA CONTRASEÑA SECUNDARIA
+        const ADMIN_PASSWORD = "1234"; 
+
+        if (code.toLowerCase() === "admin2026" && password === ADMIN_PASSWORD) {
+            State.access.isAdmin = true;
+            State.access.granted = true;
+            State.access.code = code;
+            State.access.error = "";
+            m.redraw();
+        } else {
+            State.access.error = "Contraseña de administrador incorrecta";
+            m.redraw();
+        }
+    },
+
     logout: function () {
         localStorage.removeItem("memorial_access_code");
         State.access.granted = false;
