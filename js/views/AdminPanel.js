@@ -1,6 +1,7 @@
 function AdminPanel() {
     let newProfile = { name: "", birth: "", death: "", bio: "", codigo: "", photo: "" };
     let lastCreatedLink = "";
+    let copyStatus = "Copiar Enlace"; // Para dar feedback visual al copiar
     const currentYear = new Date().getFullYear();
 
     // Función auxiliar para procesar la imagen del archivo
@@ -22,6 +23,18 @@ function AdminPanel() {
         reader.readAsDataURL(file);
     };
 
+    // Función para copiar al portapapeles
+    const copyToClipboard = () => {
+        navigator.clipboard.writeText(lastCreatedLink).then(() => {
+            copyStatus = "¡Copiado!";
+            m.redraw();
+            setTimeout(() => {
+                copyStatus = "Copiar Enlace";
+                m.redraw();
+            }, 2000);
+        });
+    };
+
     return {
         view: function () {
             return m(".admin-panel", { style: "padding: 20px; max-width: 600px; margin: 0 auto; font-family: sans-serif;" }, [
@@ -35,12 +48,21 @@ function AdminPanel() {
                     m("h4", "¡Perfil Creado con Éxito!"),
                     m("p", "Copia este enlace para el código QR:"),
                     m("code", {
-                        style: "display: block; background: white; padding: 10px; border: 1px solid #ccc; word-break: break-all;"
+                        style: "display: block; background: white; padding: 10px; border: 1px solid #ccc; word-break: break-all; margin-bottom: 10px;"
                     }, lastCreatedLink),
-                    m("button", {
-                        style: "margin-top: 10px;",
-                        onclick: () => lastCreatedLink = ""
-                    }, "Crear otro perfil")
+
+                    // BOTONES DE ACCIÓN POST-CREACIÓN
+                    m(".action-buttons", { style: "display: flex; gap: 10px;" }, [
+                        m("button", {
+                            style: "background: #28a745; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer;",
+                            onclick: copyToClipboard
+                        }, copyStatus),
+
+                        m("button", {
+                            style: "background: transparent; border: 1px solid #666; padding: 8px 15px; border-radius: 5px; cursor: pointer;",
+                            onclick: () => { lastCreatedLink = ""; copyStatus = "Copiar Enlace"; }
+                        }, "Crear otro perfil")
+                    ])
                 ]) : null,
 
                 m(".form-card", { style: "background: var(--bg-card); padding: 20px; border-radius: 12px; border: 1px solid var(--border-soft);" }, [
