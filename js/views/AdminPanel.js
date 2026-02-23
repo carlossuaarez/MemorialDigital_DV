@@ -47,7 +47,7 @@ function AdminPanel() {
                 const link = document.createElement("a");
                 link.href = URL.createObjectURL(blob);
                 link.download = fileName;
-                document.body.appendChild(link); // Añadimos al body por compatibilidad
+                document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
             });
@@ -59,48 +59,40 @@ function AdminPanel() {
                 ? `https://api.qrserver.com/v1/create-qr-code/?size=1000x1000&data=${encodeURIComponent(lastCreatedLink)}`
                 : "";
 
-            return m(".admin-panel", { style: "padding: 20px; max-width: 600px; margin: 0 auto; font-family: sans-serif;" }, [
-                m("button.logout-button", { onclick: Actions.logout, style: "margin-bottom: 20px" }, "← Cerrar Sesión Admin"),
+            return m(".admin-panel", [
+                m("button.logout-button", { onclick: Actions.logout }, "← Cerrar Sesión Admin"),
 
                 m("h2", "Panel de Administración"),
 
-                lastCreatedLink ? m(".success-box", {
-                    style: "background: #d4edda; border: 1px solid #c3e6cb; padding: 25px; border-radius: 12px; margin-bottom: 20px; color: #155724; text-align: center;"
-                }, [
-                    m("h4", { style: "margin-top: 0" }, "¡Perfil Creado con Éxito!"),
+                lastCreatedLink ? m(".success-box", [
+                    m("h4", "¡Perfil Creado con Éxito!"),
 
-                    m("div", { style: "background: white; padding: 15px; display: inline-block; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 15px;" }, [
-                        m("img", {
+                    m(".qr-container", [
+                        m("img.qr-image", {
                             src: qrUrl,
-                            alt: "Código QR",
-                            style: "width: 180px; height: 180px; display: block;"
+                            alt: "Código QR"
                         })
                     ]),
 
-                    m("p", { style: "font-size: 0.9rem; margin-bottom: 10px;" }, "Enlace del memorial:"),
-                    m("code", {
-                        style: "display: block; background: white; padding: 10px; border: 1px solid #ccc; word-break: break-all; margin-bottom: 15px; font-size: 0.8rem;"
-                    }, lastCreatedLink),
+                    m("p.memorial-link-label", "Enlace del memorial:"),
+                    m("code.memorial-code-display", lastCreatedLink),
 
-                    m(".action-buttons", { style: "display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;" }, [
-                        m("button", {
-                            style: "background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;",
+                    m(".action-buttons", [
+                        m("button.btn-copy", {
                             onclick: copyToClipboard
                         }, copyStatus),
 
-                        m("button", {
-                            style: "background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13.3px;",
+                        m("button.btn-download-qr", {
                             onclick: () => downloadQR(qrUrl)
                         }, "Descargar QR"),
 
-                        m("button", {
-                            style: "background: transparent; border: 1px solid #666; padding: 10px 20px; border-radius: 8px; cursor: pointer;",
+                        m("button.btn-reset-form", {
                             onclick: () => { lastCreatedLink = ""; copyStatus = "Copiar Enlace"; }
                         }, "Crear otro perfil")
                     ])
                 ]) : null,
 
-                m(".form-card", { style: "background: var(--bg-card); padding: 20px; border-radius: 12px; border: 1px solid var(--border-soft);" }, [
+                m(".form-card", [
                     m("h3", "Nueva Lápida Digital"),
 
                     m("label", "Nombre del fallecido"),
@@ -109,8 +101,8 @@ function AdminPanel() {
                         value: newProfile.name,
                     }),
 
-                    m(".row", { style: "display: flex; gap: 10px; margin-top: 15px;" }, [
-                        m("div", { style: "flex: 1" }, [
+                    m(".row-dates", [
+                        m(".col-date", [
                             m("label", "Nacimiento"),
                             m("input[type=number]", {
                                 min: 1900,
@@ -119,7 +111,7 @@ function AdminPanel() {
                                 value: newProfile.birth,
                             })
                         ]),
-                        m("div", { style: "flex: 1" }, [
+                        m(".col-date", [
                             m("label", "Defunción"),
                             m("input[type=number]", {
                                 min: 1900,
@@ -130,28 +122,24 @@ function AdminPanel() {
                         ])
                     ]),
 
-                    // NUEVO: Campo de Bio
+                    //Campo de Biografía
                     m("label", { style: "display: block; margin-top: 15px;" }, "Biografía (Opcional)"),
-                    m("textarea", {
-                        style: "width: 100%; min-height: 80px; padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-family: inherit;",
+                    m("textarea.bio-textarea", {
                         oninput: e => newProfile.bio = e.target.value,
                         value: newProfile.bio,
                         placeholder: "Escriba una breve historia..."
                     }),
 
-                    // NUEVO: Campo de Foto de Perfil (Solo archivo)
+                    //Campo de Foto de Perfil (Solo archivo)
                     m("label", { style: "display: block; margin-top: 15px;" }, "Foto de Perfil (Opcional)"),
                     m("input[type=file][accept=image/*]", {
-                        style: "margin-bottom: 10px;",
                         onchange: handleFileSelect
                     }),
-                    newProfile.photo ? m("img", {
-                        src: newProfile.photo,
-                        style: "display: block; width: 60px; height: 60px; object-fit: cover; border-radius: 50%; border: 2px solid #ccc;"
+                    newProfile.photo ? m("img.profile-img-preview", {
+                        src: newProfile.photo
                     }) : null,
 
-                    m("button.btn-action", {
-                        style: "width: 100%; margin-top: 25px; background: #2c3e50; color: white; padding: 12px;",
+                    m("button.btn-submit-profile", {
                         onclick: () => {
                             if (!newProfile.name) return alert("El nombre es obligatorio");
 
@@ -179,7 +167,6 @@ function AdminPanel() {
                                 const finalCode = profileToSend.codigo || res.data.codigo;
                                 lastCreatedLink = `${baseUrl}?code=${finalCode}`;
 
-                                // Resetear formulario
                                 newProfile = { name: "", birth: "", death: "", bio: "", codigo: "", photo: "" };
                                 m.redraw();
                             });
