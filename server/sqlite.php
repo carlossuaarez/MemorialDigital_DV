@@ -67,7 +67,7 @@ function rdb_open($database) {
 
     // $database="dival";
     // $user = is_logged_in();
-    $BASE = basepath("/");
+    $BASE = basepath("/data/");
     $file = $BASE . "{$database}.db";
     try {
         $bd = new SQLite3($file,SQLITE3_OPEN_CREATE | SQLITE3_OPEN_READWRITE);

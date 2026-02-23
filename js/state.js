@@ -1,6 +1,7 @@
 const DB = "memorial_db";
 const API_URL = "../server/sqlite.php";
 // const API_URL = "https://public.digitalvalue.es/github/tests2/botcamp2026/MemorialDigital/server/sqlite.php";
+
 const defaultPhoto = "./assets/defaultPfp.png";
 
 var State = {

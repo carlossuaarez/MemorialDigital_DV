@@ -32,12 +32,19 @@ function MemorialCard() {
                                     m("span", p.birth + " | " + p.death),
                                     State.isAdmin ? m("button.btn-circle.btn-edit-mini", {
                                         onclick: function () {
-                                            showPrompt("Fechas (Nacimiento | Partida)", p.birth, function (val) {
-                                                updateProfile('birth', val);
-                                                setTimeout(function () {
-                                                    var nuevaMuerte = prompt("Fecha de Partida:", p.death);
-                                                    if (nuevaMuerte) updateProfile('death', nuevaMuerte);
-                                                }, 500);
+                                            showPrompt("Año de Nacimiento", p.birth, function (valBirth) {
+                                                if (valBirth) {
+                                                    updateProfile('birth', valBirth);
+
+                                                    setTimeout(function () {
+                                                        showPrompt("Año de Partida", p.death, function (valDeath) {
+                                                            if (valDeath) {
+                                                                updateProfile('death', valDeath);
+                                                            }
+                                                        });
+                                                        m.redraw();
+                                                    }, 150);
+                                                }
                                             });
                                         }
                                     }, "✏️") : null
