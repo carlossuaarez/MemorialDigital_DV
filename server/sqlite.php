@@ -67,16 +67,23 @@ function rdb_open($database) {
 
     // $database="dival";
     // $user = is_logged_in();
-    $BASE = basepath("/data/");
-    $file = $BASE . "{$database}.db";
+    $BASE = rtrim(basepath("/data"), '/'); 
+    $file = $BASE . DIRECTORY_SEPARATOR . "{$database}.db";
     try {
-        $bd = new SQLite3($file,SQLITE3_OPEN_CREATE | SQLITE3_OPEN_READWRITE);
+        if (!file_exists($BASE)) {
+            mkdir($BASE, 0777, true);
+        }
+        $bd = new SQLite3($file, SQLITE3_OPEN_CREATE | SQLITE3_OPEN_READWRITE);
         $bd->enableExceptions(true);    
     } catch (Exception $e) {
-        print json_encode(["err"=>$e->getMessage(),"file"=>$file,"database"=>$database]);
+        header('Content-Type: application/json');
+        print json_encode([
+            "err" => "Error de SQLite: " . $e->getMessage(),
+            "file" => $file,
+            "database" => $database
+        ]);
         exit;
     }    
-    /// !!! poner try y exit en fallo
     return $bd; 
 }
 
