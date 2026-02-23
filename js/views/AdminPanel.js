@@ -1,7 +1,8 @@
 function AdminPanel() {
     let newProfile = { name: "", birth: "", death: "", bio: "", codigo: "", photo: "" };
     let lastCreatedLink = "";
-    let copyStatus = "Copiar Enlace"; // Para dar feedback visual al copiar
+    let lastProfileData = { name: "perfil", year: "" }; // Valores por defecto
+    let copyStatus = "Copiar Enlace";
     const currentYear = new Date().getFullYear();
 
     // Función auxiliar para procesar la imagen del archivo
@@ -35,31 +36,65 @@ function AdminPanel() {
         });
     };
 
+    // Nueva función para descargar con nombre personalizado corregida
+    const downloadQR = (url) => {
+        const safeName = lastProfileData.name.trim().replace(/[^a-z0-9]/gi, '_').toLowerCase();
+        const fileName = `${safeName}_${lastProfileData.year}_qr.png`;
+
+        fetch(url)
+            .then(response => response.blob())
+            .then(blob => {
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = fileName;
+                document.body.appendChild(link); // Añadimos al body por compatibilidad
+                link.click();
+                document.body.removeChild(link);
+            });
+    }; 
+
     return {
         view: function () {
+            const qrUrl = lastCreatedLink
+                ? `https://api.qrserver.com/v1/create-qr-code/?size=1000x1000&data=${encodeURIComponent(lastCreatedLink)}`
+                : "";
+
             return m(".admin-panel", { style: "padding: 20px; max-width: 600px; margin: 0 auto; font-family: sans-serif;" }, [
                 m("button.logout-button", { onclick: Actions.logout, style: "margin-bottom: 20px" }, "← Cerrar Sesión Admin"),
 
                 m("h2", "Panel de Administración"),
 
                 lastCreatedLink ? m(".success-box", {
-                    style: "background: #d4edda; border: 1px solid #c3e6cb; padding: 20px; border-radius: 8px; margin-bottom: 20px; color: #155724;"
+                    style: "background: #d4edda; border: 1px solid #c3e6cb; padding: 25px; border-radius: 12px; margin-bottom: 20px; color: #155724; text-align: center;"
                 }, [
-                    m("h4", "¡Perfil Creado con Éxito!"),
-                    m("p", "Copia este enlace para el código QR:"),
+                    m("h4", { style: "margin-top: 0" }, "¡Perfil Creado con Éxito!"),
+
+                    m("div", { style: "background: white; padding: 15px; display: inline-block; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 15px;" }, [
+                        m("img", {
+                            src: qrUrl,
+                            alt: "Código QR",
+                            style: "width: 180px; height: 180px; display: block;"
+                        })
+                    ]),
+
+                    m("p", { style: "font-size: 0.9rem; margin-bottom: 10px;" }, "Enlace del memorial:"),
                     m("code", {
-                        style: "display: block; background: white; padding: 10px; border: 1px solid #ccc; word-break: break-all; margin-bottom: 10px;"
+                        style: "display: block; background: white; padding: 10px; border: 1px solid #ccc; word-break: break-all; margin-bottom: 15px; font-size: 0.8rem;"
                     }, lastCreatedLink),
 
-                    // BOTONES DE ACCIÓN POST-CREACIÓN
-                    m(".action-buttons", { style: "display: flex; gap: 10px;" }, [
+                    m(".action-buttons", { style: "display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;" }, [
                         m("button", {
-                            style: "background: #28a745; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer;",
+                            style: "background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;",
                             onclick: copyToClipboard
                         }, copyStatus),
 
                         m("button", {
-                            style: "background: transparent; border: 1px solid #666; padding: 8px 15px; border-radius: 5px; cursor: pointer;",
+                            style: "background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13.3px;",
+                            onclick: () => downloadQR(qrUrl)
+                        }, "Descargar QR"),
+
+                        m("button", {
+                            style: "background: transparent; border: 1px solid #666; padding: 10px 20px; border-radius: 8px; cursor: pointer;",
                             onclick: () => { lastCreatedLink = ""; copyStatus = "Copiar Enlace"; }
                         }, "Crear otro perfil")
                     ])
@@ -123,23 +158,20 @@ function AdminPanel() {
                             const birth = Number(newProfile.birth);
                             const death = Number(newProfile.death);
 
-                            if (birth < 1900 || birth > currentYear) {
-                                return alert("El año de nacimiento debe estar entre 1900 y " + currentYear);
-                            }
-                            if (death < 1900 || death > currentYear) {
-                                return alert("El año de defunción debe estar entre 1900 y " + currentYear);
-                            }
-                            if (death < birth) {
-                                return alert("El año de defunción no puede ser menor al de nacimiento");
-                            }
+                            if (birth < 1900 || birth > currentYear) return alert("Año de nacimiento inválido");
+                            if (death < 1900 || death > currentYear) return alert("Año de defunción inválido");
+                            if (death < birth) return alert("La defunción no puede ser antes del nacimiento");
 
-                            // Preparar datos finales con autocompletado
+                            // PREPARAR DATOS PARA EL NOMBRE DEL ARCHIVO QR
+                            lastProfileData.name = newProfile.name;
+                            lastProfileData.year = death;
+
                             const profileToSend = {
                                 ...newProfile,
                                 birth: birth,
                                 death: death,
-                                bio: newProfile.bio || "", // Cadena vacía si no hay bio
-                                photo: newProfile.photo || defaultPhoto // Foto predeterminada desde state.js
+                                bio: newProfile.bio || "",
+                                photo: newProfile.photo || defaultPhoto
                             };
 
                             AdminActions.createProfile(profileToSend).then(res => {
