@@ -100,9 +100,9 @@ p,
     font-weight: 600;
     text-transform: uppercase;
     text-align: center;
-    grid-column: 2; 
-    white-space: nowrap; 
-    padding: 0 15px; 
+    grid-column: 2;
+    white-space: nowrap;
+    padding: 0 15px;
 }
 
 /* 4. TARJETA MEMORIAL Y PERFIL */
@@ -116,6 +116,16 @@ p,
     border: none;
     overflow: visible;
     transition: background 0.3s ease;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.8s ease forwards;
+}
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .cover-photo {
@@ -871,12 +881,12 @@ html.dark .toast {
         font-size: 0.65rem;
         letter-spacing: 3px;
     }
-    
+
     .logout-button {
         padding: 4px 6px;
         font-size: 10px;
     }
-    
+
     .theme-toggle {
         width: 32px;
         height: 32px;
@@ -1043,7 +1053,7 @@ html.dark .form-card {
     padding: 15px;
     display: inline-block;
     border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     margin-bottom: 15px;
 }
 
